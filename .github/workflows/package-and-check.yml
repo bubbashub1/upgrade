@@ -42,12 +42,17 @@ jobs:
       - name: Build plugin ZIP
         run: |
           set -e
-          rm -rf package
+          rm -rf package BubbaHub-4.1.1.zip
           mkdir -p package/bubba-hub-production
-          rsync -a --exclude='.git' --exclude='.github' --exclude='package' --exclude='google-sheet-headers.txt' --exclude='BubbaHub-*.zip' ./ package/bubba-hub-production/
+          cp bubba-hub-production.php package/bubba-hub-production/
+          cp -R includes package/bubba-hub-production/
+          cp -R assests package/bubba-hub-production/
+          cp -R templates package/bubba-hub-production/
+          find package -type f -name '*.zip' -delete
           cd package
           zip -qr ../BubbaHub-4.1.1.zip bubba-hub-production
           cd ..
+          unzip -t BubbaHub-4.1.1.zip
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
