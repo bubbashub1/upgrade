@@ -4,10 +4,8 @@ if (!defined('ABSPATH')) exit;
 /**
  * BubbaHub Google Sheets integration + group term-status engine.
  *
- * Google Apps Script web apps are read server-side so the browser never needs
- * direct access to the Google deployment. The first row returned by the
- * endpoint is treated as an associative record when the Apps Script returns
- * JSON objects.
+ * Reads the two supplied Google Apps Script deployments server-side and maps
+ * the published Google group data into the existing bh_group records.
  */
 class BubbaHubGoogleSync {
   const OPTION = 'bubbahub_google_sync';
@@ -25,9 +23,7 @@ class BubbaHubGoogleSync {
   }
 
   public static function schedule() {
-    if (!wp_next_scheduled(self::CRON)) {
-      wp_schedule_event(time() + 300, 'twicedaily', self::CRON);
-    }
+    if (!wp_next_scheduled(self::CRON)) wp_schedule_event(time() + 300, 'twicedaily', self::CRON);
   }
 
   public static function settings() {
@@ -40,14 +36,7 @@ class BubbaHubGoogleSync {
   }
 
   public static function admin_menu() {
-    add_submenu_page(
-      'bubbahub',
-      'Google Sheets Sync',
-      'Google Sheets Sync',
-      'manage_bubbahub',
-      'bubbahub-google-sync',
-      [__CLASS__, 'admin_page']
-    );
+    add_submenu_page('bubbahub','Google Sheets Sync','Google Sheets Sync','manage_bubbahub','bubbahub-google-sync',[__CLASS__, 'admin_page']);
   }
 
   public static function admin_page() {
@@ -55,18 +44,18 @@ class BubbaHubGoogleSync {
     $s = self::settings();
     $notice = isset($_GET['bh_google_sync']) ? sanitize_key($_GET['bh_google_sync']) : '';
     echo '<div class="wrap"><h1>Google Sheets Sync</h1>';
-    echo '<p>BubbaHub can read your Google Apps Script deployments server-side and map spreadsheet rows into the existing <code>bh_group</code> directory records.</p>';
+    echo '<p>BubbaHub reads the published Google Apps Script feeds server-side and maps rows into the existing <code>bh_group</code> directory records.</p>';
     if ($notice === 'success') echo '<div class="notice notice-success"><p>Google sync completed.</p></div>';
     if ($notice === 'error') echo '<div class="notice notice-error"><p>Google sync failed. Check the endpoint response and WordPress debug log.</p></div>';
     echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'">';
     wp_nonce_field('bubbahub_google_sync_settings','bubbahub_google_nonce');
     echo '<input type="hidden" name="action" value="bubbahub_google_sync">';
     echo '<table class="form-table"><tr><th><label for="bh-google-main">Main Google deployment</label></th><td><input class="regular-text code" id="bh-google-main" name="main_url" value="'.esc_attr($s['main_url']).'"><p class="description">Main group/listing feed.</p></td></tr>';
-    echo '<tr><th><label for="bh-google-term">Term-time deployment</label></th><td><input class="regular-text code" id="bh-google-term" name="term_url" value="'.esc_attr($s['term_url']).'"><p class="description">Optional second feed for term dates / term-time information.</p></td></tr>';
+    echo '<tr><th><label for="bh-google-term">Term-time deployment</label></th><td><input class="regular-text code" id="bh-google-term" name="term_url" value="'.esc_attr($s['term_url']).'"><p class="description">Second feed for term dates and term-time information.</p></td></tr>';
     echo '<tr><th>Automatic sync</th><td><label><input type="checkbox" name="auto_sync" value="1" '.checked(!empty($s['auto_sync']),true,false).'> Enable twice-daily Google sync</label></td></tr></table>';
     echo '<p><button class="button button-primary" type="submit">Save settings &amp; sync now</button></p></form>';
-    echo '<hr><h2>Current group status rule</h2><p><strong>Term time must be true.</strong> If it is true and today (Europe/London) is between the inclusive start and end dates, the group is <strong>Active</strong>. Otherwise it is <strong>Inactive</strong>. Groups with Term time false receive no status badge.</p>';
-    echo '<h2>Supported spreadsheet column aliases</h2><p>The importer deliberately accepts common variations so we can match your sheet without forcing a redesign of the existing directory.</p><p><code>name / title / group_name</code>, <code>description / content</code>, <code>start_date / start</code>, <code>end_date / end</code>, <code>term_time / term time / termtime</code>, <code>age_range</code>, <code>session_length</code>, <code>timetable</code>, <code>price</code>, <code>business_hours</code>, <code>street</code>, <code>city</code>, <code>region</code>, <code>zip / postcode</code>, <code>latitude</code>, <code>longitude</code>, <code>website</code>, <code>email</code>, <code>facebook</code>, <code>instagram</code>.</p>';
+    echo '<hr><h2>Group status rule</h2><p><strong>Term Time must be true.</strong> If today in Europe/London is between the inclusive start and end dates, the group is <strong>Active</strong> with a green circle. Otherwise it is <strong>Inactive</strong> with an orange circle. If Term Time is false, no badge is shown.</p>';
+    echo '<h2>Matched Google Sheet columns</h2><p><code>ID</code> → Google ID, <code>organizer_username</code> → organiser, <code>title</code> → listing title, <code>images</code> → images, <code>description</code> → content, <code>Tags</code> → tags, <code>category</code> → category, <code>is_featured</code> → featured, <code>address</code> → street/address, <code>city</code> → city, <code>region</code> → region, <code>zip</code> → postcode, <code>manual_lat</code> → latitude, <code>manual_lng</code> → longitude, <code>Timetable</code> → timetable, <code>openingHours</code> → business hours, <code>website</code> → website, <code>email</code> → email, <code>facebook</code> → Facebook, <code>instagram</code> → Instagram, <code>is_free</code> → free flag, <code>price</code> → price, <code>Term Time</code> → term time, <code>Age Range</code> → age range, <code>Session Length</code> → session length, <code>Day</code> → day, <code>SEN</code> → SEN.</p>';
     echo '</div>';
   }
 
@@ -90,21 +79,12 @@ class BubbaHubGoogleSync {
       'headers' => ['Accept' => 'application/json'],
       'user-agent' => 'BubbaHub/'.BUBBAHUB_VERSION,
     ]);
-    if (is_wp_error($response)) {
-      error_log('BubbaHub Google Sync: '.$response->get_error_message());
-      return [];
-    }
+    if (is_wp_error($response)) { error_log('BubbaHub Google Sync: '.$response->get_error_message()); return []; }
     $code = wp_remote_retrieve_response_code($response);
     $body = wp_remote_retrieve_body($response);
-    if ($code < 200 || $code >= 300 || !$body) {
-      error_log('BubbaHub Google Sync: HTTP '.$code.' from '.$url);
-      return [];
-    }
+    if ($code < 200 || $code >= 300 || !$body) { error_log('BubbaHub Google Sync: HTTP '.$code.' from '.$url); return []; }
     $data = json_decode($body, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-      error_log('BubbaHub Google Sync: invalid JSON from '.$url.' - '.json_last_error_msg());
-      return [];
-    }
+    if (json_last_error() !== JSON_ERROR_NONE) { error_log('BubbaHub Google Sync: invalid JSON from '.$url.' - '.json_last_error_msg()); return []; }
     return self::normalise_rows($data);
   }
 
@@ -123,9 +103,7 @@ class BubbaHubGoogleSync {
     return $out;
   }
 
-  private static function key($key) {
-    return sanitize_title_with_dashes(strtolower(trim((string)$key)));
-  }
+  private static function key($key) { return sanitize_title_with_dashes(strtolower(trim((string)$key))); }
 
   private static function value($row, $aliases) {
     foreach ($aliases as $alias) {
@@ -179,7 +157,7 @@ class BubbaHubGoogleSync {
     $rows = self::merge_rows($main, $term);
     $count = 0;
     foreach ($rows as $row) {
-      $title = sanitize_text_field(self::value($row, ['name','title','group_name','group name','listing_name']));
+      $title = sanitize_text_field(self::value($row, ['title','name','group_name','group name','listing_name']));
       if (!$title) continue;
       $external = sanitize_text_field(self::value($row, ['id','group_id','listing_id','external_id','group id']));
       $post_id = 0;
@@ -191,16 +169,37 @@ class BubbaHubGoogleSync {
       if ($post_id) {$args['ID']=$post_id; wp_update_post($args);} else {$post_id=wp_insert_post(wp_slash($args),true); if(is_wp_error($post_id)) continue;}
       if ($external !== '') update_post_meta($post_id,'_bubbahub_google_id',$external);
       $map = [
-        'street'=>['street','address1','address'], 'city'=>['city','town','postal_town'], 'region'=>['region','county'], 'zip'=>['zip','postcode','post_code'],
-        'latitude'=>['latitude','lat'], 'longitude'=>['longitude','lng','lon'], 'website'=>['website','url'], 'email'=>['email'], 'facebook'=>['facebook'], 'instagram'=>['instagram'],
-        'price'=>['price','cost'], 'business_hours'=>['business_hours','opening_hours'], 'term_time'=>['term_time','term time','termtime','term-time'], 'age_range'=>['age_range','age range'],
-        'session_length'=>['session_length','session length'], 'timetable'=>['timetable','schedule'], 'start_date'=>['start_date','start date','term_start','term start','start'], 'end_date'=>['end_date','end date','term_end','term end','end'],
-        'featured'=>['featured','is_featured'],
+        'organizer_username'=>['organizer_username','organizer username','organiser_username','organiser username','organizer','organiser'],
+        'images'=>['images','image','gallery','gallery_images'],
+        'tags'=>['tags','tag'],
+        'category'=>['category','categories'],
+        'featured'=>['is_featured','featured','featured listing'],
+        'street'=>['street','address1','address','address line 1'],
+        'city'=>['city','town','postal_town'],
+        'region'=>['region','county'],
+        'zip'=>['zip','postcode','post_code','postal_code'],
+        'latitude'=>['manual_lat','latitude','lat'],
+        'longitude'=>['manual_lng','longitude','lng','lon'],
+        'timetable'=>['timetable','schedule'],
+        'business_hours'=>['openingHours','opening hours','business_hours','opening_hours'],
+        'website'=>['website','url'],
+        'email'=>['email'],
+        'facebook'=>['facebook'],
+        'instagram'=>['instagram'],
+        'is_free'=>['is_free','free','free_session'],
+        'price'=>['price','cost'],
+        'term_time'=>['term_time','term time','termtime','term-time'],
+        'age_range'=>['age_range','age range'],
+        'session_length'=>['session_length','session length'],
+        'day'=>['day','days'],
+        'sen'=>['sen','special educational needs'],
+        'start_date'=>['start_date','start date','term_start','term start','start'],
+        'end_date'=>['end_date','end date','term_end','term end','end'],
       ];
       foreach ($map as $field=>$aliases) {
         $value = self::value($row, $aliases);
         if ($field === 'start_date' || $field === 'end_date') $value = self::normalise_date($value);
-        if ($field === 'term_time' || $field === 'featured') $value = self::truthy($value) ? '1' : '0';
+        if (in_array($field, ['term_time','featured','is_free'], true)) $value = self::truthy($value) ? '1' : '0';
         if ($value !== '') update_post_meta($post_id,'_bubbahub_'.$field, is_scalar($value) ? sanitize_text_field((string)$value) : $value);
       }
       update_post_meta($post_id,'_bubbahub_google_last_sync',current_time('mysql'));
