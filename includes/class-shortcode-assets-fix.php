@@ -1,6 +1,15 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+add_filter('body_class', function ($classes) {
+    $post = get_post();
+    $has_shortcode = is_front_page() || (is_singular() && has_shortcode($post->post_content ?? '', 'bubba_hub'));
+    if ($has_shortcode) {
+        $classes[] = 'bubbahub-full-app';
+    }
+    return $classes;
+}, 20);
+
 add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     $has_shortcode = is_front_page() || (is_singular() && has_shortcode($post->post_content ?? '', 'bubba_hub'));
