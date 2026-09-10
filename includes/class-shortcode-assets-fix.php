@@ -12,15 +12,17 @@ add_action('wp_enqueue_scripts', function () {
     wp_deregister_script('bubbahub');
 
     wp_enqueue_style('bubbahub', BUBBAHUB_URL . 'assests/css/app.css', [], BUBBAHUB_VERSION);
-    wp_enqueue_script('bubbahub', BUBBAHUB_URL . 'assests/js/app.js', [], BUBBAHUB_VERSION, true);
 
     $pages = class_exists('BubbaHub') ? BubbaHub::page_map() : [];
     $directory_url = esc_url_raw($pages['directory']['url'] ?? home_url('/directory/'));
-    $current_path = trim((string) wp_parse_url(home_url(add_query_arg([])), PHP_URL_PATH), '/');
-    $directory_path = trim((string) wp_parse_url($directory_url, PHP_URL_PATH), '/');
-    $initial_page = ($current_path !== '' && $directory_path !== '' && $current_path === $directory_path) ? 'directory' : 'home';
 
-    wp_localize_script('bubbahub', 'BubbaHubConfig', [
+    $current_url = is_singular() ? get_permalink($post) : home_url('/');
+    $current_path = trim((string) wp_parse_url($current_url, PHP_URL_PATH), '/');
+    $directory_path = trim((string) wp_parse_url($directory_url, PHP_URL_PATH), '/');
+    $is_directory = ($current_path !== '' && $directory_path !== '' && untrailingslashit('/' . $current_path) === untrailingslashit('/' . $directory_path));
+    $initial_page = $is_directory ? 'directory' : 'home';
+
+    $config = [
         'api' => esc_url_raw(rest_url('bubbahub/v1/')),
         'nonce' => wp_create_nonce('wp_rest'),
         'initialGroup' => sanitize_title((string) get_query_var('bubbahub_group')),
@@ -35,8 +37,23 @@ add_action('wp_enqueue_scripts', function () {
         'themeShell' => current_theme_supports('bubbahub-shell'),
         'initialPage' => $initial_page,
         'internalNav' => false,
-    ]);
+    ];
 
+    if ($is_directory) {
+        // The enhanced directory renderer is standalone on this page.
+        // Do not load app.js here: its legacy renderer would overwrite the
+        // enhanced search/cards immediately after first paint.
+        wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', [], BUBBAHUB_VERSION, true);
+        wp_localize_script('bubbahub-listings', 'BubbaHubConfig', $config);
+        return;
+    }
+
+    wp_enqueue_script('bubbahub', BUBBAHUB_URL . 'assests/js/app.js', [], BUBBAHUB_VERSION, true);
+    wp_localize_script('bubbahub', 'BubbaHubConfig', $config);
+
+    // Keep the enhanced listing assets available for any future directory
+    // view reached without a full page reload, but listings.js will not
+    // mount on normal pages.
     wp_enqueue_style('bubbahub-listings', BUBBAHUB_URL . 'assests/css/listings.css', ['bubbahub'], BUBBAHUB_VERSION);
     wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', ['bubbahub'], BUBBAHUB_VERSION, true);
 }, 99);
