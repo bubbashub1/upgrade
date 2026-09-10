@@ -10,14 +10,23 @@ add_action('after_setup_theme', function () {
 });
 
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('bubbahub-site-editor', get_theme_file_uri('/assets/css/theme.css'), [], '1.0.0');
+    wp_enqueue_style('bubbahub-site-editor', get_theme_file_uri('/assets/css/theme.css'), [], '1.0.1');
 });
 
 add_filter('body_class', function ($classes) {
     $classes[] = 'bubbahub-site-editor';
-    if (function_exists('BubbaHub::get_user_type') && is_user_logged_in()) {
+
+    if (is_user_logged_in() && method_exists('BubbaHub', 'get_user_type')) {
         $classes[] = 'bubbahub-user-' . sanitize_html_class(BubbaHub::get_user_type());
     }
+
+    // Stable hook for the public Leader Portal/editor. This lets the theme
+    // restyle the plugin/Directorist output without overriding their templates.
+    $request_path = trim((string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/');
+    if ($request_path === 'leader' || strpos($request_path, 'leader/') === 0) {
+        $classes[] = 'bubbahub-leader-portal';
+    }
+
     return $classes;
 });
 
