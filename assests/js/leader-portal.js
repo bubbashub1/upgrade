@@ -1,68 +1,121 @@
 (function(){
   'use strict';
+
   const C=window.BubbaHubConfig||{};
   const root=document.getElementById('bubbahub-app');
   if(!root)return;
+
   const roles=(C.user&&C.user.roles)||[];
-  const eligible=!!C.user && roles.some(r=>['administrator','bubbahub_leader','leader','leaderpro'].includes(r));
+  const eligible=!!C.user&&roles.some(r=>['administrator','bubbahub_leader','leader','leaderpro'].includes(r));
   if(!eligible)return;
 
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+
   async function api(path,opt={}){
     opt.headers=Object.assign({'Content-Type':'application/json'},opt.headers||{});
     if(C.nonce)opt.headers['X-WP-Nonce']=C.nonce;
+    opt.credentials='same-origin';
     const r=await fetch(C.api+path,opt);
     let j={};try{j=await r.json()}catch(e){}
     if(!r.ok)throw new Error(j.message||'Request failed ('+r.status+')');
     return j;
   }
 
-  const standard=[
-    ['description','Description','textarea'],['tags','Tags','text'],['category','Category','text'],['is_featured','Featured','checkbox'],
-    ['images','Images','text'],['address','Address','text'],['city','Town / City','text'],['region','Region / County','text'],['zip','Postcode','text'],
-    ['manual_lat','Latitude','text'],['manual_lng','Longitude','text'],['timetable','Timetable','textarea'],['openinghours','Opening Hours','textarea'],
-    ['website','Website','url'],['email','Email','email'],['facebook','Facebook','url'],['instagram','Instagram','url'],['is_free','Free','checkbox'],
-    ['price','Price','text'],['term_time','Term Time','text'],['age_range','Age Range','text'],['session_length','Session Length','text'],['day','Day','text'],['sen','SEN Friendly','text']
+  const fieldGroups=[
+    {id:'basics',label:'Basics',icon:'✦',intro:'Start with the essentials your families need to recognise your listing.',fields:[
+      ['category','Category','text'],['tags','Tags','text'],['is_featured','Featured','checkbox']
+    ]},
+    {id:'location',label:'Location',icon:'⌖',intro:'Tell families where they can find you.',fields:[
+      ['address','Address','text'],['city','Town / City','text'],['region','Region / County','text'],['zip','Postcode','text'],['manual_lat','Latitude','text'],['manual_lng','Longitude','text']
+    ]},
+    {id:'contact',label:'Contact',icon:'@',intro:'Add the ways families can contact or discover you.',fields:[
+      ['website','Website','url'],['email','Email','email'],['facebook','Facebook','url'],['instagram','Instagram','url']
+    ]},
+    {id:'sessions',label:'Sessions & pricing',icon:'◷',intro:'Give parents the practical information they will want before attending.',fields:[
+      ['price','Price','text'],['is_free','Free','checkbox'],['term_time','Term Time','text'],['age_range','Age Range','text'],['session_length','Session Length','text'],['day','Day','text'],['sen','SEN Friendly','text'],['timetable','Timetable','textarea'],['openinghours','Opening Hours','textarea']
+    ]},
+    {id:'media',label:'Media',icon:'▧',intro:'Add imagery or other media references for your listing.',fields:[
+      ['images','Images','text']
+    ]}
   ];
 
-  function fieldHtml(key,label,type,value){
+  function inputField(key,label,type,value){
     value=value??'';
-    if(type==='checkbox')return `<label class="bh-leader-check"><input type="checkbox" data-field="${esc(key)}" ${value==='1'||value===1||value===true?'checked':''}> <span>${esc(label)}</span></label>`;
-    const tag=type==='textarea'?'textarea':'input';
+    if(type==='checkbox')return `<label class="bh-dir-check"><input type="checkbox" data-field="${esc(key)}" ${value==='1'||value===1||value===true?'checked':''}><span><strong>${esc(label)}</strong><small>Show this option on your listing</small></span></label>`;
+    if(type==='textarea')return `<label class="bh-dir-field bh-dir-field-full"><span>${esc(label)}</span><textarea data-field="${esc(key)}" rows="5" placeholder="Enter ${esc(label.toLowerCase())}…">${esc(value)}</textarea></label>`;
     const attrs=type==='url'?'type="url"':type==='email'?'type="email"':'type="text"';
-    return `<label class="bh-leader-field"><span>${esc(label)}</span>${tag==='textarea'?`<textarea data-field="${esc(key)}" rows="4">${esc(value)}</textarea>`:`<input ${attrs} data-field="${esc(key)}" value="${esc(value)}">`}</label>`;
+    return `<label class="bh-dir-field"><span>${esc(label)}</span><input ${attrs} data-field="${esc(key)}" value="${esc(value)}" placeholder="Enter ${esc(label.toLowerCase())}…"></label>`;
+  }
+
+  function buildSections(post,isNew){
+    const custom=post&&post.custom_fields?post.custom_fields:{};
+    const sections=fieldGroups.map(group=>{
+      const fields=group.fields.map(([k,l,t])=>inputField(k,l,t,custom[k]?.value??''));
+      return {...group,html:fields.join('')};
+    });
+
+    const customFields=[];
+    Object.keys(custom).forEach(k=>{
+      if(fieldGroups.some(g=>g.fields.some(f=>f[0]===k)))return;
+      const f=custom[k]||{};
+      customFields.push(inputField(k,f.label||k,f.type||'text',f.value??''));
+    });
+    if(customFields.length)sections.push({id:'custom',label:'Additional information',icon:'＋',intro:'Extra fields configured for your BubbaHub listing.',html:customFields.join('')});
+    return sections;
   }
 
   function editorShell(title,subtitle,post,type,isNew){
-    const fields=[];
-    const custom=post&&post.custom_fields?post.custom_fields:{};
-    standard.forEach(([k,l,t])=>{
-      if(isNew || custom[k] || ['description','category','address','city','website','email','price','age_range','timetable','openinghours'].includes(k))
-        fields.push(fieldHtml(k,l,t,custom[k]?.value??''));
-    });
-    Object.keys(custom).forEach(k=>{
-      if(standard.some(x=>x[0]===k))return;
-      const f=custom[k]||{};fields.push(fieldHtml(k,f.label||k,f.type||'text',f.value??''));
-    });
+    const sections=buildSections(post,isNew);
     const content=post?.raw_content||'';
-    return `<div class="bh-leader-editor-wrap"><div class="bh-leader-editor-head"><div><span class="bh-eyebrow">${isNew?'Create listing':'Edit listing'}</span><h2>${esc(title)}</h2><p>${esc(subtitle)}</p></div><button type="button" class="bh-btn secondary" id="bh-leader-cancel">Cancel</button></div><form id="bh-leader-form"><div class="bh-leader-main"><section class="bh-leader-card"><label class="bh-leader-field"><span>Listing name *</span><input id="bh-leader-title" required value="${esc(post?.title||'')}"></label><label class="bh-leader-field"><span>Description</span><textarea id="bh-leader-content" rows="8">${esc(content)}</textarea></label><div class="bh-leader-grid">${fields.join('')}</div></section><aside class="bh-leader-side"><section class="bh-leader-card"><h3>Publishing</h3><label class="bh-leader-field"><span>Status</span><select id="bh-leader-status"><option value="draft" ${post?.status==='draft'||!post?'selected':''}>Draft</option><option value="pending" ${post?.status==='pending'?'selected':''}>Pending review</option><option value="publish" ${post?.status==='publish'?'selected':''}>Published</option></select></label><p class="bh-small">New listings are saved as drafts by default. Your administrator can approve or publish them.</p></section><section class="bh-leader-card"><h3>Google Sheets</h3><p class="bh-small" id="bh-google-message">${post?.google_writeback_enabled?'Changes will be written back to the linked Google Sheet.':'Google write-back is not currently enabled.'}</p></section></aside></div><div class="bh-leader-actions"><button class="bh-btn" type="submit" id="bh-leader-save">${isNew?'Create listing':'Save changes'}</button><span id="bh-leader-result" role="status"></span></div></form></div>`;
+    const status=post?.status||'draft';
+
+    const nav=sections.map((s,i)=>`<button type="button" class="bh-dir-nav ${i===0?'is-active':''}" data-step="${esc(s.id)}"><span class="bh-dir-nav-icon">${s.icon}</span><span>${esc(s.label)}</span></button>`).join('');
+    const panes=sections.map((s,i)=>`<section class="bh-dir-pane ${i===0?'is-active':''}" data-pane="${esc(s.id)}"><div class="bh-dir-pane-head"><div><span class="bh-dir-kicker">${i+1} of ${sections.length}</span><h3>${esc(s.label)}</h3><p>${esc(s.intro)}</p></div></div>${s.id==='basics'?`<label class="bh-dir-field bh-dir-field-full"><span>Listing name <em>*</em></span><input id="bh-leader-title" required value="${esc(post?.title||'')}" placeholder="e.g. Baby Sensory Torbay"></label><label class="bh-dir-field bh-dir-field-full"><span>Description</span><textarea id="bh-leader-content" rows="8" placeholder="Tell families what makes your group or service special…">${esc(content)}</textarea></label>`:''}<div class="bh-dir-grid">${s.html}</div></section>`).join('');
+
+    return `<div class="bh-dir-editor"><header class="bh-dir-editor-head"><div class="bh-dir-breadcrumb"><button type="button" id="bh-leader-cancel">Leader Portal</button><span>/</span><strong>${isNew?'New listing':'Edit listing'}</strong></div><div class="bh-dir-title-row"><div><span class="bh-dir-kicker">${isNew?'CREATE LISTING':'EDIT LISTING'}</span><h1>${esc(title)}</h1><p>${esc(subtitle)}</p></div><div class="bh-dir-head-actions"><span class="bh-dir-status ${status==='publish'?'is-live':''}">${status==='publish'?'Published':status==='pending'?'Pending review':'Draft'}</span></div></div></header><form id="bh-leader-form" class="bh-dir-layout"><aside class="bh-dir-sidebar"><div class="bh-dir-sidebar-title">Listing details</div><nav>${nav}</nav><div class="bh-dir-help"><strong>Need help?</strong><p>Complete the sections that apply to your group. You can save as a draft at any time.</p></div></aside><main class="bh-dir-content"><div class="bh-dir-card">${panes}</div><section class="bh-dir-publish"><div><span class="bh-dir-kicker">PUBLISHING</span><h3>Ready to publish?</h3><p>New listings are saved as drafts. Your administrator can review and publish them.</p></div><label class="bh-dir-status-field"><span>Status</span><select id="bh-leader-status"><option value="draft" ${status==='draft'?'selected':''}>Draft</option><option value="pending" ${status==='pending'?'selected':''}>Pending review</option><option value="publish" ${status==='publish'?'selected':''}>Published</option></select></label></section><section class="bh-dir-sync"><span class="bh-dir-sync-icon">↕</span><div><strong>Google Sheets sync</strong><p id="bh-google-message">${post?.google_writeback_enabled?'Changes will be written back to the linked Google Sheet when you save.':'Google write-back is not currently enabled for this listing.'}</p></div></section><div class="bh-dir-actions"><button type="button" class="bh-dir-btn secondary" id="bh-leader-cancel-bottom">Cancel</button><div class="bh-dir-save-group"><span id="bh-leader-result" role="status"></span><button class="bh-dir-btn primary" type="submit" id="bh-leader-save">${isNew?'Create listing':'Save changes'} <span>→</span></button></div></div></main></form></div>`;
   }
 
   function collect(){
-    const meta={};root.querySelectorAll('#bh-leader-form [data-field]').forEach(el=>{meta[el.dataset.field]=el.type==='checkbox'?(el.checked?'1':'0'):el.value;});
+    const meta={};
+    root.querySelectorAll('#bh-leader-form [data-field]').forEach(el=>{meta[el.dataset.field]=el.type==='checkbox'?(el.checked?'1':'0'):el.value;});
     return {title:root.querySelector('#bh-leader-title').value.trim(),content:root.querySelector('#bh-leader-content').value,status:root.querySelector('#bh-leader-status').value,meta};
+  }
+
+  function setupWizard(){
+    const buttons=[...root.querySelectorAll('.bh-dir-nav')];
+    const panes=[...root.querySelectorAll('.bh-dir-pane')];
+    buttons.forEach(btn=>btn.onclick=()=>{
+      const step=btn.dataset.step;
+      buttons.forEach(b=>b.classList.toggle('is-active',b===btn));
+      panes.forEach(p=>p.classList.toggle('is-active',p.dataset.pane===step));
+      const content=root.querySelector('.bh-dir-content');if(content)content.scrollIntoView({behavior:'smooth',block:'start'});
+    });
   }
 
   async function openEditor(type,id){
     try{
       const post=id?await api(`leader/${type}/${id}`):null;
-      root.innerHTML=editorShell(post?post.title:'New listing',type==='groups'?'Add or update your local group listing.':'Add or update your event.',post,type,id?false:true);
-      root.querySelector('#bh-leader-cancel').onclick=()=>renderPortal();
+      root.innerHTML=editorShell(post?post.title:'New listing',type==='groups'?'Create or update your local group listing.':'Create or update your event.',post,type,!id);
+      setupWizard();
+      const cancel=()=>renderPortal();
+      root.querySelector('#bh-leader-cancel').onclick=cancel;
+      root.querySelector('#bh-leader-cancel-bottom').onclick=cancel;
       root.querySelector('#bh-leader-form').onsubmit=async e=>{
-        e.preventDefault();const btn=root.querySelector('#bh-leader-save'),msg=root.querySelector('#bh-leader-result');btn.disabled=true;msg.textContent='Saving…';
-        try{const data=collect();if(!data.title){throw new Error('Please enter a listing name.')}const out=await api(`leader/${type}${id?'/'+id:''}`,{method:id?'PUT':'POST',body:JSON.stringify(data)});msg.textContent=out.message||'Listing saved.';btn.textContent='Saved';setTimeout(()=>renderPortal(),700)}catch(err){msg.textContent=err.message;btn.disabled=false;}
+        e.preventDefault();
+        const btn=root.querySelector('#bh-leader-save'),msg=root.querySelector('#bh-leader-result');
+        btn.disabled=true;msg.textContent='Saving…';
+        try{
+          const data=collect();
+          if(!data.title)throw new Error('Please enter a listing name.');
+          const out=await api(`leader/${type}${id?'/'+id:''}`,{method:id?'PUT':'POST',body:JSON.stringify(data)});
+          msg.textContent=out.message||'Listing saved.';btn.innerHTML='Saved ✓';
+          setTimeout(()=>renderPortal(),900);
+        }catch(err){msg.textContent=err.message;btn.disabled=false;}
       };
-    }catch(e){root.innerHTML=`<div class="bh-main"><div class="bh-empty"><h2>Could not open listing</h2><p>${esc(e.message)}</p><button class="bh-btn" id="bh-retry">Back to Leader Portal</button></div></div>`;root.querySelector('#bh-retry').onclick=renderPortal;}
+    }catch(e){
+      root.innerHTML=`<div class="bh-main"><div class="bh-empty"><h2>Could not open listing</h2><p>${esc(e.message)}</p><button class="bh-btn" id="bh-retry">Back to Leader Portal</button></div></div>`;
+      root.querySelector('#bh-retry').onclick=renderPortal;
+    }
   }
 
   async function renderPortal(){
@@ -70,20 +123,20 @@
     try{
       const groups=await api('leader/groups');
       let events=[];try{events=await api('leader/events')}catch(e){}
-      root.innerHTML=`<div class="bh-main bh-leader bh-leader-portal"><div class="bh-pagehead"><div><div class="bh-eyebrow">Leader workspace</div><h1>Leader Portal</h1><p class="bh-small">Manage your BubbaHub listings from the front end.</p></div><button class="bh-btn" id="bh-add-listing">＋ Add New Listing</button></div><div class="bh-leader-notice" id="bh-leader-notice"></div><section class="bh-section"><div class="bh-section-title"><h2>Your groups</h2><span class="bh-small">${groups.length} listing${groups.length===1?'':'s'}</span></div><div class="bh-grid">${groups.length?groups.map(g=>`<article class="bh-card bh-leader-listing"><span class="bh-tag">Group</span><h3>${esc(g.title||'Untitled')}</h3><p class="bh-small">${esc(g.status||'draft')} ${g.google_id?' · Google linked':''}</p><button class="bh-btn secondary" data-edit-group="${g.id}">Edit listing</button></article>`).join(''):'<div class="bh-card"><h3>No groups yet</h3><p>Create your first listing using the button above.</p></div>'}</div></section><section class="bh-section"><div class="bh-section-title"><h2>Your events</h2><button class="bh-btn secondary" id="bh-add-event">＋ Add Event</button></div><div class="bh-grid">${events.length?events.map(g=>`<article class="bh-card bh-leader-listing"><span class="bh-tag">Event</span><h3>${esc(g.title||'Untitled')}</h3><p class="bh-small">${esc(g.status||'draft')}</p><button class="bh-btn secondary" data-edit-event="${g.id}">Edit event</button></article>`).join(''):'<div class="bh-card"><p>No events yet.</p></div>'}</div></section></div>`;
+      root.innerHTML=`<div class="bh-main bh-leader bh-leader-portal"><div class="bh-pagehead"><div><div class="bh-eyebrow">Leader workspace</div><h1>Leader Portal</h1><p class="bh-small">Manage your BubbaHub listings from one place.</p></div><button class="bh-btn" id="bh-add-listing">＋ Add New Listing</button></div><div class="bh-leader-notice" id="bh-leader-notice"></div><section class="bh-section"><div class="bh-section-title"><h2>Your groups</h2><span class="bh-small">${groups.length} listing${groups.length===1?'':'s'}</span></div><div class="bh-grid">${groups.length?groups.map(g=>`<article class="bh-card bh-leader-listing"><span class="bh-tag">Group</span><h3>${esc(g.title||'Untitled')}</h3><p class="bh-small">${esc(g.status||'draft')} ${g.google_id?' · Google linked':''}</p><button class="bh-btn secondary" data-edit-group="${g.id}">Edit listing</button></article>`).join(''):'<div class="bh-card"><h3>No groups yet</h3><p>Create your first listing using the button above.</p></div>'}</div></section><section class="bh-section"><div class="bh-section-title"><h2>Your events</h2><button class="bh-btn secondary" id="bh-add-event">＋ Add Event</button></div><div class="bh-grid">${events.length?events.map(g=>`<article class="bh-card bh-leader-listing"><span class="bh-tag">Event</span><h3>${esc(g.title||'Untitled')}</h3><p class="bh-small">${esc(g.status||'draft')}</p><button class="bh-btn secondary" data-edit-event="${g.id}">Edit event</button></article>`).join(''):'<div class="bh-card"><p>No events yet.</p></div>'}</div></section></div>`;
       root.querySelector('#bh-add-listing').onclick=()=>openEditor('groups',0);
       root.querySelector('#bh-add-event').onclick=()=>openEditor('events',0);
       root.querySelectorAll('[data-edit-group]').forEach(b=>b.onclick=()=>openEditor('groups',+b.dataset.editGroup));
       root.querySelectorAll('[data-edit-event]').forEach(b=>b.onclick=()=>openEditor('events',+b.dataset.editEvent));
     }catch(e){
-      root.innerHTML=`<div class="bh-main"><div class="bh-empty"><h2>Leader access is not working</h2><p>${esc(e.message)}</p><p class="bh-small">The WordPress REST request was rejected. The plugin now supplies the REST nonce automatically, so if this remains, the account needs the BubbaHub leader capability.</p><button class="bh-btn" id="bh-leader-refresh">Refresh</button></div></div>`;
+      root.innerHTML=`<div class="bh-main"><div class="bh-empty"><h2>Leader access is not working</h2><p>${esc(e.message)}</p><p class="bh-small">The WordPress REST request was rejected. Refresh and try again.</p><button class="bh-btn" id="bh-leader-refresh">Refresh</button></div></div>`;
       root.querySelector('#bh-leader-refresh').onclick=renderPortal;
     }
   }
 
   function boot(){
-    const page=(C.initialPage||'');
-    if(page==='leader' || location.pathname.replace(/\/+$/,'').endsWith('/leader'))renderPortal();
+    const page=C.initialPage||'';
+    if(page==='leader'||location.pathname.replace(/\/+$/,'').endsWith('/leader'))renderPortal();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
