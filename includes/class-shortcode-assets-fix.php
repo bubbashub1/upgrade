@@ -57,6 +57,7 @@ add_action('wp_enqueue_scripts', function () {
     // The Leader Portal has its own renderer. Do NOT load app.js or listings.js
     // on this page: both can render #bubbahub-app and overwrite the editor UI.
     if ($initial_page === 'leader') {
+        wp_enqueue_style('bubbahub-leader-portal', BUBBAHUB_URL . 'assests/css/leader-portal.css', ['bubbahub'], BUBBAHUB_VERSION);
         wp_enqueue_script('bubbahub-leader-editor', BUBBAHUB_URL . 'assests/js/leader-portal.js', [], BUBBAHUB_VERSION, true);
         wp_localize_script('bubbahub-leader-editor', 'BubbaHubConfig', $config);
         return;
