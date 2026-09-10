@@ -24,6 +24,7 @@ require_once BUBBAHUB_DIR.'includes/class-leader-editor-sync.php';
 require_once BUBBAHUB_DIR.'includes/class-rest-cookie-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-rest-bootstrap-fix.php';
+require_once BUBBAHUB_DIR.'includes/class-frontend-assets-fix.php';
 
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
