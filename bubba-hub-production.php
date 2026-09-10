@@ -16,6 +16,7 @@ require_once BUBBAHUB_DIR.'includes/class-bubbahub.php';
 require_once BUBBAHUB_DIR.'includes/class-rest.php';
 require_once BUBBAHUB_DIR.'includes/class-admin.php';
 require_once BUBBAHUB_DIR.'includes/class-finance.php';
+require_once BUBBAHUB_DIR.'includes/class-finance-providers.php';
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
 add_action('plugins_loaded', function(){ new BubbaHub(); });
