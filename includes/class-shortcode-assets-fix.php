@@ -18,9 +18,24 @@ add_action('wp_enqueue_scripts', function () {
 
     $current_url = is_singular() ? get_permalink($post) : home_url('/');
     $current_path = trim((string) wp_parse_url($current_url, PHP_URL_PATH), '/');
-    $directory_path = trim((string) wp_parse_url($directory_url, PHP_URL_PATH), '/');
-    $is_directory = ($current_path !== '' && $directory_path !== '' && untrailingslashit('/' . $current_path) === untrailingslashit('/' . $directory_path));
-    $initial_page = $is_directory ? 'directory' : 'home';
+
+    // Determine the actual BubbaHub page from the mapped page URLs. This is
+    // important for My Hub and all other shortcode pages: previously every
+    // shortcode page other than Directory was incorrectly initialised as Home.
+    $initial_page = 'home';
+    foreach ($pages as $page_key => $page_config) {
+        $page_url = esc_url_raw($page_config['url'] ?? '');
+        if (!$page_url) continue;
+
+        $page_path = trim((string) wp_parse_url($page_url, PHP_URL_PATH), '/');
+        if ($page_path !== '' && $current_path !== '' &&
+            untrailingslashit('/' . $current_path) === untrailingslashit('/' . $page_path)) {
+            $initial_page = sanitize_key($page_key);
+            break;
+        }
+    }
+
+    $is_directory = ($initial_page === 'directory');
 
     $config = [
         'api' => esc_url_raw(rest_url('bubbahub/v1/')),
