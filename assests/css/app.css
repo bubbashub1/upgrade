@@ -5,10 +5,10 @@ html,body{margin:0;padding:0;min-height:100%;background:var(--bg)}
 .bh-app{width:100%;min-height:100vh;margin:0;padding:0}
 .bh-app .bh-nav{display:block}
 body.bubbahub-full-app .bh-app{display:block}
-/* Force the shortcode application out of the WordPress theme's narrow content column. */
-.bh-app{width:100vw;max-width:none;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);}
+/* v1.4: escape WordPress/theme content columns and own the full browser width. */
+.bh-app{position:relative;width:100vw;max-width:100vw;left:50%;right:auto;margin-left:-50vw;margin-right:0;min-height:100vh;overflow:visible;}
 .bh-app .bh-main{width:100%;max-width:none;margin:0;padding:48px clamp(20px,4vw,60px);}
-.bh-app .bh-navin{max-width:1400px;}
+.bh-app .bh-navin{width:100%;max-width:1400px;margin-left:auto;margin-right:auto;}
 .bh-app .bh-hero{width:100%;}
 /* v1.4.1: inline child profile form */
 .bh-child{border-top:1px solid var(--border);padding:16px 0}.bh-child:first-child{border-top:0;padding-top:0}.bh-child-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.bh-child-head h4{margin:0 0 4px;font-size:16px}.bh-child-details p{margin:8px 0}.bh-child-tracker{margin-top:12px;padding:14px;border-radius:14px;box-shadow:none}.bh-child-tracker h3{font-size:15px}.bh-child-form{margin-top:18px;padding-top:18px;border-top:1px solid var(--border);display:grid;gap:8px}.bh-child-form h4{margin:0 0 4px;font-size:16px}.bh-child-form label{font-size:13px;font-weight:700}.bh-form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.bh-error{margin:0;padding:10px 12px;border-radius:10px;background:#fff1f1;color:#9b2c2c;font-size:13px;font-weight:700}.bh-btn:disabled{opacity:.6;cursor:not-allowed}
