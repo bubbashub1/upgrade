@@ -4,9 +4,7 @@ if (!defined('ABSPATH')) exit;
 add_filter('body_class', function ($classes) {
     $post = get_post();
     $has_shortcode = is_front_page() || (is_singular() && has_shortcode($post->post_content ?? '', 'bubba_hub'));
-    if ($has_shortcode) {
-        $classes[] = 'bubbahub-full-app';
-    }
+    if ($has_shortcode) $classes[] = 'bubbahub-full-app';
     return $classes;
 }, 20);
 
@@ -24,18 +22,13 @@ add_action('wp_enqueue_scripts', function () {
 
     $pages = class_exists('BubbaHub') ? BubbaHub::page_map() : [];
     $directory_url = esc_url_raw($pages['directory']['url'] ?? home_url('/directory/'));
-
     $current_url = is_singular() ? get_permalink($post) : home_url('/');
     $current_path = trim((string) wp_parse_url($current_url, PHP_URL_PATH), '/');
-
-    // Determine the actual BubbaHub page from the mapped page URLs. This is
-    // important for My Hub and all other shortcode pages: previously every
-    // shortcode page other than Directory was incorrectly initialised as Home.
     $initial_page = 'home';
+
     foreach ($pages as $page_key => $page_config) {
         $page_url = esc_url_raw($page_config['url'] ?? '');
         if (!$page_url) continue;
-
         $page_path = trim((string) wp_parse_url($page_url, PHP_URL_PATH), '/');
         if ($page_path !== '' && $current_path !== '' &&
             untrailingslashit('/' . $current_path) === untrailingslashit('/' . $page_path)) {
@@ -43,8 +36,6 @@ add_action('wp_enqueue_scripts', function () {
             break;
         }
     }
-
-    $is_directory = ($initial_page === 'directory');
 
     $config = [
         'api' => esc_url_raw(rest_url('bubbahub/v1/')),
@@ -63,10 +54,7 @@ add_action('wp_enqueue_scripts', function () {
         'internalNav' => false,
     ];
 
-    if ($is_directory) {
-        // The enhanced directory renderer is standalone on this page.
-        // Do not load app.js here: its legacy renderer would overwrite the
-        // enhanced search/cards immediately after first paint.
+    if ($initial_page === 'directory') {
         wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', [], BUBBAHUB_VERSION, true);
         wp_localize_script('bubbahub-listings', 'BubbaHubConfig', $config);
         return;
@@ -74,10 +62,14 @@ add_action('wp_enqueue_scripts', function () {
 
     wp_enqueue_script('bubbahub', BUBBAHUB_URL . 'assests/js/app.js', [], BUBBAHUB_VERSION, true);
     wp_localize_script('bubbahub', 'BubbaHubConfig', $config);
-
-    // Keep the enhanced listing assets available for any future directory
-    // view reached without a full page reload, but listings.js will not
-    // mount on normal pages.
     wp_enqueue_style('bubbahub-listings', BUBBAHUB_URL . 'assests/css/listings.css', ['bubbahub'], BUBBAHUB_VERSION);
     wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', ['bubbahub'], BUBBAHUB_VERSION, true);
+
+    // Leader editor is deliberately enqueued here, after BubbaHubConfig exists.
+    // This avoids a second bootstrap class and prevents a missing optional file
+    // from taking the entire WordPress site down.
+    $leader_file = BUBBAHUB_DIR . 'assests/js/leader-portal.js';
+    if (file_exists($leader_file)) {
+        wp_enqueue_script('bubbahub-leader-editor', BUBBAHUB_URL . 'assests/js/leader-portal.js', ['bubbahub'], BUBBAHUB_VERSION, true);
+    }
 }, 99);
