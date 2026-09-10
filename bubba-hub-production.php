@@ -20,6 +20,7 @@ require_once BUBBAHUB_DIR.'includes/class-finance-providers.php';
 require_once BUBBAHUB_DIR.'includes/class-finance-security.php';
 require_once BUBBAHUB_DIR.'includes/class-account-types.php';
 require_once BUBBAHUB_DIR.'includes/class-google-sync.php';
+require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
 
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
