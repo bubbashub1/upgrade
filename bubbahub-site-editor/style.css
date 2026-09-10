@@ -1,0 +1,12 @@
+/*
+Theme Name: BubbaHub Site Editor
+Theme URI: https://bubbahub.co.uk/
+Author: BubbaHub
+Description: Mobile-first block theme designed to work with the BubbaHub plugin, directory, family hub and leader portal.
+Requires at least: 6.4
+Requires PHP: 8.0
+Version: 1.0.0
+Text Domain: bubbahub-site-editor
+*/
+
+/* Core layout is loaded from theme.json and assets/css/theme.css. */
