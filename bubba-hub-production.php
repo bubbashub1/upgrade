@@ -21,6 +21,7 @@ require_once BUBBAHUB_DIR.'includes/class-finance-security.php';
 require_once BUBBAHUB_DIR.'includes/class-account-types.php';
 require_once BUBBAHUB_DIR.'includes/class-google-sync.php';
 require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
+require_once BUBBAHUB_DIR.'includes/class-rest-bootstrap-fix.php';
 
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
@@ -38,18 +39,11 @@ add_action('plugins_loaded', function(){
       'from' => $stored_version,
       'to'   => BUBBAHUB_VERSION,
     ], false);
-    // Prevent the legacy constructor upgrade path from running during load.
     update_option('bubbahub_db_version', BUBBAHUB_VERSION, false);
   }
   new BubbaHub();
 });
 
-/**
- * Run pending database/plugin upgrades only after WordPress has completed init.
- * admin_init is late enough for post types, taxonomies and rewrite globals to be
- * available, and the Throwable guard prevents an upgrade issue from taking the
- * entire website offline.
- */
 add_action('admin_init', function(){
   $pending = get_option('bubbahub_pending_upgrade', false);
   if (!is_array($pending) || empty($pending['to']) || $pending['to'] !== BUBBAHUB_VERSION) {
@@ -62,7 +56,5 @@ add_action('admin_init', function(){
     update_option('bubbahub_db_version', BUBBAHUB_VERSION, false);
   } catch (Throwable $e) {
     error_log('BubbaHub 4.1.2 upgrade failed: ' . $e->getMessage());
-    // Keep the pending upgrade marker so it can be retried after the underlying
-    // issue is corrected, but do not bring down wp-admin or the public site.
   }
 }, 1);
