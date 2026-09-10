@@ -1,0 +1,66 @@
+name: BubbaHub 4.1 Package and Google Sheet Check
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PHP syntax
+        run: |
+          set -e
+          find . -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Fetch Google Sheet CSV and report headers
+        env:
+          CSV_URL: https://docs.google.com/spreadsheets/d/e/2PACX-1vRbtom1DcDeyoo10WCV_MIsjS8dm98zfxbL9Pf2oCOGYdX_Tl8kVOwDenhT01t4Rdq3nzA7dODJ-ZnV/pub?gid=0&single=true&output=csv
+        run: |
+          set -e
+          curl --fail --location --silent --show-error "$CSV_URL" -o /tmp/groups.csv
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+          p = Path('/tmp/groups.csv')
+          with p.open('r', encoding='utf-8-sig', newline='') as f:
+              rows = list(csv.reader(f))
+          if not rows:
+              raise SystemExit('Google Sheet CSV is empty')
+          headers = [h.strip() for h in rows[0]]
+          print('GOOGLE SHEET COLUMN NAMES:')
+          for i, h in enumerate(headers, 1):
+              print(f'{i}. {h}')
+          Path('google-sheet-headers.txt').write_text('\n'.join(headers) + '\n', encoding='utf-8')
+          print(f'ROWS: {max(0, len(rows)-1)}')
+          PY
+
+      - name: Build plugin ZIP
+        run: |
+          set -e
+          rm -rf package
+          mkdir -p package/bubba-hub-production
+          rsync -a --exclude='.git' --exclude='.github' --exclude='package' --exclude='google-sheet-headers.txt' ./ package/bubba-hub-production/
+          cd package
+          zip -qr ../BubbaHub-4.1.1.zip bubba-hub-production
+          cd ..
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: BubbaHub-4.1.1
+          path: BubbaHub-4.1.1.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Google headers report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Google-Sheet-Headers
+          path: google-sheet-headers.txt
+          if-no-files-found: error
+          retention-days: 14
