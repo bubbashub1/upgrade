@@ -16,3 +16,53 @@ body.bubbahub-full-app .bh-app{display:block}
 .bh-card-actions,.bh-modal-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}.bh-card-actions .bh-actions,.bh-modal-actions .bh-actions{margin-top:0}.bh-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.bh-modalbox.bh-group-modal{width:min(760px,100%);max-height:min(88vh,900px);overflow:auto}.bh-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}.bh-modal-head h2{margin:6px 0 0;font-size:30px;line-height:1.1}.bh-group-image{display:block;width:100%;max-height:360px;object-fit:cover;border-radius:16px;margin:0 0 20px}.bh-group-content{color:var(--dark);line-height:1.7}.bh-group-content p:first-child{margin-top:0}.bh-group-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px}.bh-group-detail{line-height:1.7}.bh-group-detail img{max-width:100%;height:auto}@media(max-width:800px){.bh-group-layout{grid-template-columns:1fr}.bh-modalbox.bh-group-modal{padding:20px}.bh-modal-head h2{font-size:24px}}
 .bh-custom-fields{display:grid;gap:8px;margin:14px 0;padding:12px 14px;background:rgba(0,0,0,.025);border-radius:10px}.bh-custom-field{font-size:.94rem}.bh-custom-field strong{margin-right:4px}
 .bh-public-pricing,.bh-public-signup{max-width:1180px;margin:40px auto;padding:0 20px;font-family:inherit}.bh-pricing-head{text-align:center;margin-bottom:30px}.bh-pricing-head h2{font-size:34px;margin:6px 0 10px}.bh-pricing-head p{color:#617487}.bh-pricing-family{margin:34px 0}.bh-pricing-family-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}.bh-pricing-family-head h3{font-size:24px;margin:0;color:#193d62}.bh-pricing-family-head span{color:#6a7f90}.bh-pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.bh-public-plan{position:relative;background:#fff;border:1px solid #dfe7ed;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(25,56,87,.06)}.bh-public-plan.is-current{border-color:#49b6c8}.bh-current-badge{position:absolute;top:14px;right:14px;background:#eaf8f4;color:#177b65;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700}.bh-public-plan h4{font-size:22px;margin:0 0 8px;color:#193d62}.bh-public-plan p{min-height:45px;color:#63778a}.bh-public-price{font-size:34px;font-weight:800;color:#193d62;margin:18px 0}.bh-public-price small{font-size:13px;font-weight:500;color:#63778a}.bh-public-plan ul{list-style:none;margin:0 0 22px;padding:0}.bh-public-plan li{padding:7px 0;border-bottom:1px solid #eef2f5;color:#40566b}.bh-pricing-button{display:inline-block;width:100%;box-sizing:border-box;text-align:center;padding:11px 16px;border-radius:9px;background:#2271b1;color:#fff;text-decoration:none;border:0;cursor:pointer}.bh-pricing-button:hover{color:#fff;opacity:.92}.bh-payment-note{text-align:center;color:#617487;padding:18px;background:#f7fafc;border-radius:10px}.bh-public-signup{max-width:620px}.bh-signup-form{background:#fff;border:1px solid #dfe7ed;border-radius:16px;padding:25px;box-shadow:0 8px 24px rgba(25,56,87,.06)}.bh-signup-form label{display:block;font-weight:600;margin-bottom:15px;color:#294860}.bh-signup-form input,.bh-signup-form select{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #ccd8e1;border-radius:8px}.bh-signup-success,.bh-signup-error{padding:14px;border-radius:10px;margin-bottom:18px}.bh-signup-success{background:#eaf8f4;color:#176b5a}.bh-signup-error{background:#fff1f1;color:#a12a2a}@media(max-width:850px){.bh-pricing-grid{grid-template-columns:1fr}.bh-pricing-family-head{display:block}.bh-pricing-family-head span{display:block;margin-top:4px}}
+
+/* v1.5: remove the theme's page/content constraints on BubbaHub shortcode pages. */
+body.bubbahub-full-app,
+body.bubbahub-full-app #page,
+body.bubbahub-full-app .site,
+body.bubbahub-full-app .site-content,
+body.bubbahub-full-app .site-main,
+body.bubbahub-full-app .content-area,
+body.bubbahub-full-app article,
+body.bubbahub-full-app .entry-content,
+body.bubbahub-full-app .container,
+body.bubbahub-full-app .container-fluid {
+    width:100% !important;
+    max-width:none !important;
+}
+body.bubbahub-full-app #page,
+body.bubbahub-full-app .site-content,
+body.bubbahub-full-app .site-main,
+body.bubbahub-full-app .content-area,
+body.bubbahub-full-app article,
+body.bubbahub-full-app .entry-content {
+    margin-left:0 !important;
+    margin-right:0 !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+}
+body.bubbahub-full-app #page,
+body.bubbahub-full-app .site,
+body.bubbahub-full-app .site-content,
+body.bubbahub-full-app .site-main,
+body.bubbahub-full-app .content-area,
+body.bubbahub-full-app article,
+body.bubbahub-full-app .entry-content {
+    overflow:visible !important;
+}
+body.bubbahub-full-app .entry-title,
+body.bubbahub-full-app .page-header {
+    display:none !important;
+}
+body.bubbahub-full-app .bh-app {
+    position:relative !important;
+    display:block !important;
+    width:100vw !important;
+    max-width:100vw !important;
+    left:50% !important;
+    right:auto !important;
+    margin-left:-50vw !important;
+    margin-right:0 !important;
+    overflow:visible !important;
+}
