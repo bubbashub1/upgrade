@@ -54,6 +54,14 @@ add_action('wp_enqueue_scripts', function () {
         'internalNav' => false,
     ];
 
+    // The Leader Portal has its own renderer. Do NOT load app.js or listings.js
+    // on this page: both can render #bubbahub-app and overwrite the editor UI.
+    if ($initial_page === 'leader') {
+        wp_enqueue_script('bubbahub-leader-editor', BUBBAHUB_URL . 'assests/js/leader-portal.js', [], BUBBAHUB_VERSION, true);
+        wp_localize_script('bubbahub-leader-editor', 'BubbaHubConfig', $config);
+        return;
+    }
+
     if ($initial_page === 'directory') {
         wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', [], BUBBAHUB_VERSION, true);
         wp_localize_script('bubbahub-listings', 'BubbaHubConfig', $config);
@@ -64,12 +72,4 @@ add_action('wp_enqueue_scripts', function () {
     wp_localize_script('bubbahub', 'BubbaHubConfig', $config);
     wp_enqueue_style('bubbahub-listings', BUBBAHUB_URL . 'assests/css/listings.css', ['bubbahub'], BUBBAHUB_VERSION);
     wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', ['bubbahub'], BUBBAHUB_VERSION, true);
-
-    // Leader editor is deliberately enqueued here, after BubbaHubConfig exists.
-    // This avoids a second bootstrap class and prevents a missing optional file
-    // from taking the entire WordPress site down.
-    $leader_file = BUBBAHUB_DIR . 'assests/js/leader-portal.js';
-    if (file_exists($leader_file)) {
-        wp_enqueue_script('bubbahub-leader-editor', BUBBAHUB_URL . 'assests/js/leader-portal.js', ['bubbahub'], BUBBAHUB_VERSION, true);
-    }
 }, 99);
