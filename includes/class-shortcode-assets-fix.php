@@ -37,8 +37,7 @@ add_filter('body_class', function ($classes) {
 
 /**
  * If /directory/ is a normal WordPress page without the BubbaHub shortcode,
- * provide the app mount point so the enhanced directory renderer can take
- * over instead of leaving the page as an unstyled/partial listing output.
+ * provide the app mount point so the enhanced directory renderer can take over.
  */
 add_filter('the_content', function ($content) {
     if (is_admin() || !is_singular() || !in_the_loop() || !is_main_query()) return $content;
@@ -51,7 +50,8 @@ add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     $is_directory = bubbahub_is_directory_page();
     $has_shortcode = is_front_page() || (is_singular() && has_shortcode($post->post_content ?? '', 'bubba_hub'));
-    $is_app = $has_shortcode || $is_directory;
+    $is_group = (bool) get_query_var('bubbahub_group');
+    $is_app = $has_shortcode || $is_directory || $is_group;
     if (!$is_app) return;
 
     wp_dequeue_style('bubbahub');
@@ -65,9 +65,9 @@ add_action('wp_enqueue_scripts', function () {
     $directory_url = esc_url_raw($pages['directory']['url'] ?? home_url('/directory/'));
     $current_url = is_singular() ? get_permalink($post) : home_url('/');
     $current_path = trim((string) wp_parse_url($current_url, PHP_URL_PATH), '/');
-    $initial_page = $is_directory ? 'directory' : 'home';
+    $initial_page = $is_group ? 'group' : ($is_directory ? 'directory' : 'home');
 
-    if (!$is_directory) {
+    if (!$is_directory && !$is_group) {
         foreach ($pages as $page_key => $page_config) {
             $page_url = esc_url_raw($page_config['url'] ?? '');
             if (!$page_url) continue;
@@ -97,6 +97,15 @@ add_action('wp_enqueue_scripts', function () {
         'internalNav' => false,
     ];
 
+    // Group URLs get the dedicated full listing page so the directory cards,
+    // Google/Sheets data and leader editor remain separate from the detail layout.
+    if ($is_group) {
+        wp_enqueue_style('bubbahub-group-page', BUBBAHUB_URL . 'assests/css/group-page.css', ['bubbahub'], BUBBAHUB_VERSION);
+        wp_enqueue_script('bubbahub-group-page', BUBBAHUB_URL . 'assests/js/group-page.js', [], BUBBAHUB_VERSION, true);
+        wp_localize_script('bubbahub-group-page', 'BubbaHubConfig', $config);
+        return;
+    }
+
     // The Leader Portal has its own renderer. Do NOT load app.js or listings.js
     // on this page: both can render #bubbahub-app and overwrite the editor UI.
     if ($initial_page === 'leader') {
@@ -108,8 +117,6 @@ add_action('wp_enqueue_scripts', function () {
 
     if ($initial_page === 'directory') {
         // Directory pages need BOTH the shared app shell and directory-specific CSS.
-        // Previously listings.js was loaded without listings.css, producing the
-        // unstyled layout visible on /directory/.
         wp_enqueue_style('bubbahub-listings', BUBBAHUB_URL . 'assests/css/listings.css', ['bubbahub'], BUBBAHUB_VERSION);
         wp_enqueue_script('bubbahub-listings', BUBBAHUB_URL . 'assests/js/listings.js', [], BUBBAHUB_VERSION, true);
         wp_localize_script('bubbahub-listings', 'BubbaHubConfig', $config);
