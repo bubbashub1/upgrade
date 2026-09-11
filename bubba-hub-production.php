@@ -2,13 +2,13 @@
 /**
  * Plugin Name: BubbaHub Production
  * Description: Production WordPress application for BubbaHub: groups, events, family hub, support, app directory, leader portal, bookings, payments, wallets and REST API.
- * Version: 4.1.7
+ * Version: 4.1.8
  * Author: BubbaHub
  * Requires at least: 6.4
  * Requires PHP: 8.0
  */
 if (!defined('ABSPATH')) exit;
-define('BUBBAHUB_VERSION','4.1.7');
+define('BUBBAHUB_VERSION','4.1.8');
 define('BUBBAHUB_DIR',plugin_dir_path(__FILE__));
 define('BUBBAHUB_URL',plugin_dir_url(__FILE__));
 require_once BUBBAHUB_DIR.'includes/class-bubbahub.php';
@@ -25,6 +25,7 @@ require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-rest-bootstrap-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-listing-admin-tools.php';
 require_once BUBBAHUB_DIR.'includes/class-listing-ui-assets.php';
+require_once BUBBAHUB_DIR.'includes/class-cpt-capability-fix.php';
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
 add_action('plugins_loaded', function(){
@@ -42,5 +43,5 @@ add_action('admin_init', function(){
     BubbaHub::activate();
     delete_option('bubbahub_pending_upgrade');
     update_option('bubbahub_db_version',BUBBAHUB_VERSION,false);
-  }catch(Throwable $e){error_log('BubbaHub 4.1.7 upgrade failed: '.$e->getMessage());}
+  }catch(Throwable $e){error_log('BubbaHub 4.1.8 upgrade failed: '.$e->getMessage());}
 },1);
