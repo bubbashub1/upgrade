@@ -1,22 +1,45 @@
-/* Final polished listing-card action layer */
-#bhListingGrid .bh-listing-card{overflow:hidden;background:#fff;border:1px solid #dce8e3;box-shadow:0 6px 22px rgba(26,69,55,.08);transition:transform .18s ease,box-shadow .18s ease}
-#bhListingGrid .bh-listing-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(26,69,55,.12)}
-#bhListingGrid .bh-listing-media{position:relative;width:100%;height:150px;overflow:hidden;background:#eaf2ef}
-#bhListingGrid .bh-listing-media>img{width:100%!important;height:100%!important;display:block;object-fit:cover!important}
-#bhListingGrid .bh-listing-body{padding:16px 16px 15px!important}
-#bhListingGrid .bh-listing-title{margin:2px 0 7px!important;font-size:19px!important;line-height:1.18!important}
-#bhListingGrid .bh-title-link{display:block!important;width:100%!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;text-align:left!important;color:#153f32!important;font:inherit!important;font-weight:800!important;cursor:pointer!important}
-#bhListingGrid .bh-listing-location{margin:0 0 9px!important;color:#687c74!important;font-size:11px!important}
-#bhListingGrid .bh-directory-facts{min-height:27px;margin:0 0 12px!important;display:flex;gap:6px;flex-wrap:wrap}
-#bhListingGrid .bh-directory-facts span{font-size:10px!important;padding:5px 8px!important;background:#f5f9f7!important;border:1px solid #e0ebe6!important;border-radius:8px!important;color:#496158!important}
-#bhListingGrid .bh-listing-card-actions{margin-top:0!important}
-#bhListingGrid .bh-primary-details{display:flex!important;width:100%!important;min-height:44px!important;align-items:center!important;justify-content:center!important;border-radius:11px!important;font-size:12px!important;font-weight:800!important}
-#bhListingGrid .bh-card-actions-modern{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:8px;width:100%}
-#bhListingGrid .bh-card-actions-modern .bh-action-button{height:35px!important;min-width:0!important;width:100%!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border:1px solid #cfe0da!important;border-radius:9px!important;background:#fff!important;color:#315f4e!important;font-size:10px!important;font-weight:800!important;text-decoration:none!important;cursor:pointer!important;box-shadow:none!important;padding:0 6px!important}
-#bhListingGrid .bh-card-actions-modern .bh-listing-save{position:static!important;inset:auto!important;transform:none!important;margin:0!important;font-size:17px!important}
-#bhListingGrid .bh-card-actions-modern .bh-listing-save:hover,#bhListingGrid .bh-card-actions-modern .bh-listing-save.is-checked{background:#edf6f2!important}
-#bhListingGrid .bh-card-actions-modern .bh-compare-button.is-selected{background:#e7f2ed!important;border-color:#8eb9aa!important}
-#bhListingGrid .bh-card-actions-modern .bh-visit-button{background:#f4f8f6!important}
-#bhListingGrid .bh-card-badges{z-index:3;display:flex!important;gap:5px!important;flex-wrap:wrap!important;max-width:calc(100% - 58px)!important}
-#bhListingGrid .bh-badge{font-size:9px!important;font-weight:800!important;border-radius:7px!important;padding:5px 7px!important;line-height:1!important}
-@media(max-width:700px){#bhListingGrid .bh-listing-media{height:145px}#bhListingGrid .bh-card-actions-modern{gap:5px}#bhListingGrid .bh-card-actions-modern .bh-action-button{font-size:9px}}
+/* BubbaHub — reference-matched modern listing cards
+ * Keep the existing data/actions; only correct presentation and hierarchy.
+ */
+#bhListingGrid{align-items:stretch}
+#bhListingGrid .bh-listing-card{position:relative;display:flex!important;flex-direction:column!important;overflow:hidden!important;width:100%!important;min-width:0!important;background:#fff!important;border:1px solid #d8e5e0!important;border-radius:22px!important;box-shadow:0 3px 12px rgba(24,64,51,.07)!important;transform:none!important;transition:box-shadow .18s ease,transform .18s ease!important}
+#bhListingGrid .bh-listing-card:hover{transform:translateY(-2px)!important;box-shadow:0 9px 24px rgba(24,64,51,.11)!important}
+#bhListingGrid .bh-listing-media{position:relative!important;flex:0 0 160px!important;width:100%!important;height:160px!important;min-height:160px!important;overflow:hidden!important;background:#dfece7!important}
+#bhListingGrid .bh-listing-media>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+#bhListingGrid .bh-listing-placeholder{position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;font-weight:800!important;color:#21604d!important;background:#dfece7!important}
+#bhListingGrid .bh-card-badges{position:absolute!important;z-index:4!important;left:14px!important;top:14px!important;right:58px!important;display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important;max-width:calc(100% - 72px)!important}
+#bhListingGrid .bh-badge{display:inline-flex!important;align-items:center!important;min-height:24px!important;padding:5px 9px!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:999px!important;background:rgba(255,255,255,.94)!important;color:#245b49!important;font-size:9px!important;line-height:1!important;font-weight:800!important;letter-spacing:.02em!important;box-shadow:0 2px 7px rgba(24,64,51,.08)!important}
+#bhListingGrid .bh-badge-featured{background:#1d5c49!important;color:#fff!important;border-color:#1d5c49!important}
+#bhListingGrid .bh-badge-popular{background:#fff8dd!important;color:#7a6114!important}
+#bhListingGrid .bh-badge-new{background:#eef7f3!important;color:#21604d!important}
+#bhListingGrid .bh-badge-term{background:#f4f0ff!important;color:#65518d!important}
+#bhListingGrid .bh-listing-media>.bh-listing-save{position:absolute!important;z-index:5!important;top:13px!important;right:13px!important;left:auto!important;bottom:auto!important;width:38px!important;height:38px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:50%!important;background:rgba(255,255,255,.96)!important;color:#24604e!important;font-size:20px!important;line-height:1!important;box-shadow:0 4px 12px rgba(24,64,51,.13)!important;cursor:pointer!important}
+#bhListingGrid .bh-listing-media>.bh-listing-save:hover,#bhListingGrid .bh-listing-media>.bh-listing-save.is-checked{background:#eaf5f0!important;color:#1d5c49!important}
+#bhListingGrid .bh-listing-body{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-width:0!important;padding:19px 20px 18px!important;background:#fff!important}
+#bhListingGrid .bh-listing-category{margin:0 0 8px!important;min-height:12px!important;color:#4c8172!important;font-family:inherit!important;font-size:9px!important;line-height:1.35!important;font-weight:800!important;letter-spacing:.07em!important;text-transform:uppercase!important}
+#bhListingGrid .bh-listing-title{margin:0 0 9px!important;padding:0!important;min-height:0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:19px!important;line-height:1.18!important;font-weight:700!important;color:#173f33!important}
+#bhListingGrid .bh-title-link{display:block!important;width:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#173f33!important;text-align:left!important;font:inherit!important;font-weight:700!important;line-height:inherit!important;cursor:pointer!important}
+#bhListingGrid .bh-title-link:hover{text-decoration:underline!important;text-underline-offset:3px!important}
+#bhListingGrid .bh-listing-location,#bhListingGrid .bh-listing-session,#bhListingGrid .bh-listing-age{display:block!important;margin:0 0 7px!important;color:#48645c!important;font-family:inherit!important;font-size:11px!important;line-height:1.4!important;font-weight:500!important}
+#bhListingGrid .bh-listing-location:before{content:'⌖';margin-right:7px;color:#357262;font-weight:800}
+#bhListingGrid .bh-listing-age:before{content:'♙';margin-right:7px;color:#357262;font-weight:800}
+#bhListingGrid .bh-listing-session{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#bhListingGrid .bh-listing-session:before{content:'▣';margin-right:7px;color:#357262;font-size:10px}
+#bhListingGrid .bh-listing-price{display:inline-flex!important;align-items:center!important;align-self:flex-start!important;margin:2px 0 13px!important;padding:5px 10px!important;border:1px solid #d4e4de!important;border-radius:999px!important;background:#f8fbfa!important;color:#245b49!important;font-size:10px!important;font-weight:800!important;line-height:1.2!important}
+#bhListingGrid .bh-listing-price span{display:block!important}
+#bhListingGrid .bh-listing-card-actions{margin-top:auto!important;padding-top:2px!important;width:100%!important}
+#bhListingGrid .bh-primary-details,#bhListingGrid .bh-listing-view{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:43px!important;height:43px!important;margin:0!important;padding:0 14px!important;border:1px solid #a9cec1!important;border-radius:11px!important;background:#fff!important;color:#245b49!important;font-family:inherit!important;font-size:11px!important;line-height:1!important;font-weight:800!important;cursor:pointer!important;box-shadow:none!important}
+#bhListingGrid .bh-primary-details:hover,#bhListingGrid .bh-listing-view:hover{background:#edf6f2!important;border-color:#78ad9d!important}
+#bhListingGrid .bh-card-actions-modern{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:6px!important;width:100%!important;margin:8px 0 0!important}
+#bhListingGrid .bh-card-actions-modern .bh-action-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:32px!important;min-width:0!important;margin:0!important;padding:0 6px!important;border:1px solid #d4e3de!important;border-radius:9px!important;background:#f8fbfa!important;color:#4c6d63!important;font-family:inherit!important;font-size:9px!important;font-weight:800!important;line-height:1!important;text-decoration:none!important;cursor:pointer!important;box-shadow:none!important}
+#bhListingGrid .bh-card-actions-modern .bh-listing-save{position:static!important;width:100%!important;height:32px!important;font-size:0!important}
+#bhListingGrid .bh-card-actions-modern .bh-listing-save:before{content:'♡';font-size:17px!important;line-height:1!important}
+#bhListingGrid .bh-card-actions-modern .bh-listing-save.is-checked:before{content:'♥'}
+#bhListingGrid .bh-card-actions-modern .bh-action-button:hover{background:#edf6f2!important;border-color:#a9cec1!important;color:#245b49!important}
+#bhListingGrid .bh-card-actions-modern .bh-compare-button.is-selected{background:#e5f2ec!important;border-color:#86b5a6!important;color:#1d5c49!important}
+/* In the Figma-style grid the utility row is deliberately quiet; View Details remains primary. */
+#bhListingGrid.bh-view-list .bh-listing-card{display:grid!important;grid-template-columns:220px minmax(0,1fr)!important;flex-direction:initial!important}
+#bhListingGrid.bh-view-list .bh-listing-media{height:100%!important;min-height:180px!important}
+#bhListingGrid.bh-view-list .bh-listing-body{padding:20px 22px!important}
+@media(max-width:1100px){#bhListingGrid .bh-listing-media{height:150px!important;min-height:150px!important;flex-basis:150px!important}}
+@media(max-width:700px){#bhListingGrid .bh-listing-media{height:165px!important;min-height:165px!important;flex-basis:165px!important}#bhListingGrid .bh-listing-body{padding:17px 17px 16px!important}#bhListingGrid .bh-listing-title{font-size:18px!important}#bhListingGrid.bh-view-list .bh-listing-card{display:flex!important}#bhListingGrid.bh-view-list .bh-listing-media{height:145px!important;min-height:145px!important;flex-basis:145px!important}}
