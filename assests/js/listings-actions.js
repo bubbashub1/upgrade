@@ -6,19 +6,32 @@ const website=g=>getField(g,'website','url','website_url')||g?.link||'#';
 const termTime=g=>{const v=String(getField(g,'term_time','term-time','term_time_only','termTime')).toLowerCase().trim();return v&&!['0','no','false','off','none'].includes(v);};
 let groups=[];
 function enhance(){
- root.querySelectorAll('.bh-directory-card').forEach(card=>{
+ root.querySelectorAll('.bh-directory-card, #bhListingGrid .bh-listing-card').forEach(card=>{
   if(card.dataset.bhActionsReady==='1')return;
-  const id=card.dataset.listingId,g=groups.find(x=>String(x.id)===String(id)); if(!g)return;
-  const body=card.querySelector('.bh-listing-body'),save=card.querySelector('.bh-listing-save'),view=card.querySelector('.bh-listing-view'); if(!body||!view)return;
+  const id=card.dataset.listingId||card.dataset.id;
+  const g=groups.find(x=>String(x.id)===String(id)); if(!g)return;
+  const body=card.querySelector('.bh-listing-body'),save=card.querySelector('.bh-listing-media .bh-listing-save, .bh-listing-save'),view=card.querySelector('.bh-listing-view');
+  if(!body||!view)return;
   card.dataset.bhActionsReady='1';
-  let actions=body.querySelector('.bh-card-actions-modern'); if(!actions){actions=document.createElement('div');actions.className='bh-card-actions-modern';body.appendChild(actions);}
-  if(save){save.className='bh-listing-save bh-action-button';save.textContent='♡ Favourite';save.setAttribute('aria-label','Favourite listing');actions.appendChild(save);}
-  const compare=document.createElement('button');compare.type='button';compare.className='bh-action-button bh-compare-button';compare.textContent='Compare';compare.dataset.compareId=id;actions.appendChild(compare);
-  const visit=document.createElement('a');visit.className='bh-action-button bh-visit-button';visit.textContent='Visit';visit.href=website(g);visit.target='_blank';visit.rel='noopener';actions.appendChild(visit);
+  /* Favourite stays in the image, matching the reference card. */
+  if(save){save.className='bh-listing-save';save.textContent='♡';save.setAttribute('aria-label','Favourite listing');}
+  let actions=body.querySelector('.bh-card-actions-modern');
+  if(!actions){
+    actions=document.createElement('div');
+    actions.className='bh-card-actions-modern';
+    const primary=body.querySelector('.bh-listing-card-actions');
+    if(primary) body.insertBefore(actions,primary); else body.appendChild(actions);
+  }
+  if(!actions.querySelector('.bh-compare-button')){
+    const compare=document.createElement('button');compare.type='button';compare.className='bh-action-button bh-compare-button';compare.textContent='Compare';compare.dataset.compareId=id;actions.appendChild(compare);
+    const selected=JSON.parse(localStorage.getItem('bubbahub-compare')||'[]').map(String);compare.classList.toggle('is-selected',selected.includes(String(id)));
+    compare.onclick=()=>{let ids=JSON.parse(localStorage.getItem('bubbahub-compare')||'[]').map(String),sid=String(id);if(ids.includes(sid))ids=ids.filter(x=>x!==sid);else{if(ids.length>=3){alert('You can compare up to 3 listings.');return;}ids.push(sid);}localStorage.setItem('bubbahub-compare',JSON.stringify(ids));compare.classList.toggle('is-selected',ids.includes(sid));};
+  }
+  if(!actions.querySelector('.bh-visit-button')){
+    const visit=document.createElement('a');visit.className='bh-action-button bh-visit-button';visit.textContent='Visit';visit.href=website(g);visit.target='_blank';visit.rel='noopener';actions.appendChild(visit);
+  }
   view.classList.add('bh-primary-details');
-  if(termTime(g)&&!card.querySelector('.bh-badge-term')){const badges=card.querySelector('.bh-card-badges');if(badges){const b=document.createElement('span');b.className='bh-badge bh-badge-term';b.textContent='Term time';badges.appendChild(b);}}
-  const selected=JSON.parse(localStorage.getItem('bubbahub-compare')||'[]').map(String);compare.classList.toggle('is-selected',selected.includes(String(id)));
-  compare.onclick=()=>{let ids=JSON.parse(localStorage.getItem('bubbahub-compare')||'[]').map(String),sid=String(id);if(ids.includes(sid))ids=ids.filter(x=>x!==sid);else{if(ids.length>=3){alert('You can compare up to 3 listings.');return;}ids.push(sid);}localStorage.setItem('bubbahub-compare',JSON.stringify(ids));compare.classList.toggle('is-selected',ids.includes(sid));};
+  if(termTime(g)&&!card.querySelector('.bh-badge-term')){const badges=card.querySelector('.bh-card-badges');if(badges){const b=document.createElement('span');b.className='bh-badge bh-badge-term';b.textContent='Term Time';badges.appendChild(b);}}
  });
 }
 async function init(){try{const C=window.BubbaHubConfig||{},r=await fetch(C.api+'bootstrap',{headers:C.nonce?{'X-WP-Nonce':C.nonce}:{}}),d=await r.json();groups=d.groups||[];enhance();new MutationObserver(enhance).observe(root,{childList:true,subtree:true});}catch(e){console.warn('BubbaHub card actions:',e);}}
