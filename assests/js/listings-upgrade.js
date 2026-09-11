@@ -1,6 +1,8 @@
 (function(){
 const C=window.BubbaHubConfig||{},root=document.getElementById('bubbahub-app');if(!root)return;
-const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+/* The directory-controls renderer is the single source of truth on the directory page. Prevent this legacy renderer from painting first and then being replaced, which caused the directory card to flash and disappear. */
+if(root.querySelector('#bhDirectoryEnhanced'))return;
+const esc=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 const val=(g,k)=>g.custom_fields?.[k]?.value??g.custom_fields?.[k]??'';
 const clean=s=>String(s??'').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
 const field=(g,...ks)=>{for(const k of ks){const v=val(g,k);if(v!==''&&v!==null&&v!==undefined)return v}return''};
