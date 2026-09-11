@@ -11,6 +11,7 @@ class BubbaHubListingUIAssets {
         wp_enqueue_script('bubbahub-listings-upgrade',BUBBAHUB_URL.'assests/js/listings-upgrade.js',[],BUBBAHUB_VERSION.'-listing',true);
         wp_enqueue_script('bubbahub-listings-directory-controls',BUBBAHUB_URL.'assests/js/listings-directory-controls.js',['bubbahub-listings-upgrade'],BUBBAHUB_VERSION.'-directory-controls',true);
         wp_enqueue_script('bubbahub-listings-actions',BUBBAHUB_URL.'assests/js/listings-actions.js',['bubbahub-listings-directory-controls'],BUBBAHUB_VERSION.'-actions',true);
+        wp_enqueue_script('bubbahub-listings-directory-ready',BUBBAHUB_URL.'assests/js/listings-directory-ready.js',['bubbahub-listings-directory-controls'],BUBBAHUB_VERSION.'-ready',true);
     }
 }
 BubbaHubListingUIAssets::boot();
