@@ -15,6 +15,9 @@ add_filter('rest_pre_dispatch', function($result, $server, $request){
                 if(preg_match('/pass|token|secret|password|api.?key/i',(string)$key)) continue;
                 $meta[$key]=count($values)===1?$values[0]:$values;
             }
+            // manual_lat/manual_lng are the authoritative directory map coordinates.
+            $meta['manual_lat']=get_post_meta($p->ID,'manual_lat',true);
+            $meta['manual_lng']=get_post_meta($p->ID,'manual_lng',true);
             $out[]=['id'=>(int)$p->ID,'title'=>get_the_title($p),'slug'=>$p->post_name,'content'=>apply_filters('the_content',$p->post_content),'excerpt'=>get_the_excerpt($p),'image'=>get_the_post_thumbnail_url($p,'large'),'terms'=>array_values(array_unique($terms)),'custom_fields'=>$meta,'link'=>get_permalink($p->ID),'date'=>get_post_time('c',true,$p),'modified'=>get_post_modified_time('c',true,$p)];
         }
         return $out;
