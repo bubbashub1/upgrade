@@ -1,0 +1,196 @@
+name: BubbaHub CI/CD - eWeball
+
+on:
+  push:
+    branches:
+      - bubbahub-google-editor-fix
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bubbahub-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLUGIN_SLUG: bubba-hub-production
+  PHP_MIN_VERSION: '8.0'
+
+jobs:
+  test:
+    name: Test and package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Check required plugin files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f bubba-hub-production.php
+          test -d includes
+          test -d templates
+          test -d assests
+
+      - name: Build deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf package BubbaHub-${GITHUB_SHA}.zip
+          mkdir -p "package/${PLUGIN_SLUG}"
+          cp bubba-hub-production.php "package/${PLUGIN_SLUG}/"
+          cp -R includes "package/${PLUGIN_SLUG}/"
+          cp -R assests "package/${PLUGIN_SLUG}/"
+          cp -R templates "package/${PLUGIN_SLUG}/"
+          cd package
+          zip -qr "../BubbaHub-${GITHUB_SHA}.zip" "${PLUGIN_SLUG}"
+          cd ..
+          unzip -t "BubbaHub-${GITHUB_SHA}.zip"
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: BubbaHub-${{ github.sha }}
+          path: BubbaHub-${{ github.sha }}.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy-staging:
+    name: Deploy to eWeball staging
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/bubbahub-google-editor-fix'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.bubbahub.co.uk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare plugin files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deploy
+          mkdir -p "deploy/${PLUGIN_SLUG}"
+          cp bubba-hub-production.php "deploy/${PLUGIN_SLUG}/"
+          cp -R includes "deploy/${PLUGIN_SLUG}/"
+          cp -R assests "deploy/${PLUGIN_SLUG}/"
+          cp -R templates "deploy/${PLUGIN_SLUG}/"
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.EWEBALL_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.EWEBALL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy plugin to staging
+        shell: bash
+        env:
+          EWEBALL_SSH_USER: ${{ secrets.EWEBALL_SSH_USER }}
+          EWEBALL_SSH_HOST: ${{ secrets.EWEBALL_SSH_HOST }}
+          EWEBALL_STAGING_PATH: ${{ secrets.EWEBALL_STAGING_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$EWEBALL_SSH_USER"
+          test -n "$EWEBALL_SSH_HOST"
+          test -n "$EWEBALL_STAGING_PATH"
+          ssh -o BatchMode=yes "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST" "mkdir -p '$EWEBALL_STAGING_PATH/wp-content/plugins/${PLUGIN_SLUG}'"
+          rsync -az --delete \
+            -e 'ssh -o BatchMode=yes' \
+            "deploy/${PLUGIN_SLUG}/" \
+            "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST:$EWEBALL_STAGING_PATH/wp-content/plugins/${PLUGIN_SLUG}/"
+
+      - name: Verify staging plugin files
+        shell: bash
+        env:
+          EWEBALL_SSH_USER: ${{ secrets.EWEBALL_SSH_USER }}
+          EWEBALL_SSH_HOST: ${{ secrets.EWEBALL_SSH_HOST }}
+          EWEBALL_STAGING_PATH: ${{ secrets.EWEBALL_STAGING_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST" \
+            "test -f '$EWEBALL_STAGING_PATH/wp-content/plugins/${PLUGIN_SLUG}/bubba-hub-production.php'"
+
+  deploy-production:
+    name: Deploy to eWeball production
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://bubbahub.co.uk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare plugin files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deploy
+          mkdir -p "deploy/${PLUGIN_SLUG}"
+          cp bubba-hub-production.php "deploy/${PLUGIN_SLUG}/"
+          cp -R includes "deploy/${PLUGIN_SLUG}/"
+          cp -R assests "deploy/${PLUGIN_SLUG}/"
+          cp -R templates "deploy/${PLUGIN_SLUG}/"
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.EWEBALL_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.EWEBALL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy plugin to production
+        shell: bash
+        env:
+          EWEBALL_SSH_USER: ${{ secrets.EWEBALL_SSH_USER }}
+          EWEBALL_SSH_HOST: ${{ secrets.EWEBALL_SSH_HOST }}
+          EWEBALL_PRODUCTION_PATH: ${{ secrets.EWEBALL_PRODUCTION_PATH }}
+        run: |
+          set -euo pipefail
+          test -n "$EWEBALL_SSH_USER"
+          test -n "$EWEBALL_SSH_HOST"
+          test -n "$EWEBALL_PRODUCTION_PATH"
+          ssh -o BatchMode=yes "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST" "mkdir -p '$EWEBALL_PRODUCTION_PATH/wp-content/plugins/${PLUGIN_SLUG}'"
+          rsync -az --delete \
+            -e 'ssh -o BatchMode=yes' \
+            "deploy/${PLUGIN_SLUG}/" \
+            "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST:$EWEBALL_PRODUCTION_PATH/wp-content/plugins/${PLUGIN_SLUG}/"
+
+      - name: Verify production plugin files
+        shell: bash
+        env:
+          EWEBALL_SSH_USER: ${{ secrets.EWEBALL_SSH_USER }}
+          EWEBALL_SSH_HOST: ${{ secrets.EWEBALL_SSH_HOST }}
+          EWEBALL_PRODUCTION_PATH: ${{ secrets.EWEBALL_PRODUCTION_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes "$EWEBALL_SSH_USER@$EWEBALL_SSH_HOST" \
+            "test -f '$EWEBALL_PRODUCTION_PATH/wp-content/plugins/${PLUGIN_SLUG}/bubba-hub-production.php'"
