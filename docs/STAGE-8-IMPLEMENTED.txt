@@ -1,0 +1,1 @@
+Implemented Google Sheets import in includes/class-google-import.php and loaded it from bubba-hub-production.php. Version 4.1.6. Import is manual and admin-only. No demo data.
