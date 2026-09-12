@@ -1,8 +1,8 @@
-name: BubbaHub 4.3 Package and Google Sheet Check
+name: BubbaHub Package and Google Sheet Check
 
 on:
   push:
-    branches: [ main, 'stage-*', 'staging-ready-*' ]
+    branches: [ main, 'stage-*', 'staging-ready-*', 'fix-*' ]
   workflow_dispatch:
 
 jobs:
@@ -47,10 +47,21 @@ jobs:
           print(f'ROWS: {max(0, len(rows)-1)}')
           PY
 
-      - name: Build plugin ZIP
+      - name: Read plugin version
+        id: version
         run: |
           set -e
-          rm -rf package BubbaHub-4.3.0.zip
+          VERSION=$(sed -n "s/^ *\* Version: *//p" bubba-hub-production.php | head -1)
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "BubbaHub version: $VERSION"
+
+      - name: Build plugin ZIP
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -e
+          rm -rf package "BubbaHub-${VERSION}.zip"
           mkdir -p package/bubba-hub-production
           cp bubba-hub-production.php package/bubba-hub-production/
           cp -R includes package/bubba-hub-production/
@@ -58,15 +69,15 @@ jobs:
           cp -R templates package/bubba-hub-production/
           find package -type f -name '*.zip' -delete
           cd package
-          zip -qr ../BubbaHub-4.3.0.zip bubba-hub-production
+          zip -qr "../BubbaHub-${VERSION}.zip" bubba-hub-production
           cd ..
-          unzip -t BubbaHub-4.3.0.zip
+          unzip -t "BubbaHub-${VERSION}.zip"
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: BubbaHub-4.3.0
-          path: BubbaHub-4.3.0.zip
+          name: BubbaHub-${{ steps.version.outputs.version }}
+          path: BubbaHub-${{ steps.version.outputs.version }}.zip
           if-no-files-found: error
           retention-days: 14
 
