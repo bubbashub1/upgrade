@@ -50,7 +50,9 @@ jobs:
       - name: Read plugin version
         id: version
         run: |
-          VERSION=$(php -r 'include "bubba-hub-production.php"; echo BUBBAHUB_VERSION;')
+          set -e
+          VERSION=$(sed -n "s/^ *\* Version: *//p" bubba-hub-production.php | head -1)
+          test -n "$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "BubbaHub version: $VERSION"
 
