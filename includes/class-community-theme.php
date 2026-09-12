@@ -45,8 +45,7 @@ class BubbaHubCommunityTheme {
       return home_url('/' . trim((string) ($defs[$key]['slug'] ?? $key), '/') . '/');
     };
     $current = get_queried_object_id();
-    $items = ['whats_on','buddy','myhub','support','about'];
-    if (is_user_logged_in() && class_exists('BubbaHub') && BubbaHub::get_user_type() === 'leader') $items[] = 'leader';
+    $items = ['whats_on','buddy','myhub','support','about','leader'];
     $labels = [
       'whats_on' => "What's On",
       'buddy'    => 'Bubba Buddy',
