@@ -4,6 +4,11 @@ if (!defined('ABSPATH')) exit;
 /**
  * Safe installer/upgrader for MariaDB/WordPress dbDelta.
  * dbDelta expects CREATE TABLE fields and indexes on separate lines.
+ *
+ * Important: post types must not be registered during plugins_loaded.
+ * WordPress has not initialised WP_Rewrite at that point, so calling
+ * register_post_type() there can cause add_rewrite_tag() to dereference
+ * a null $wp_rewrite object on modern WordPress versions.
  */
 final class BubbaHubSafeInstaller {
     public static function schema() {
@@ -68,16 +73,30 @@ final class BubbaHubSafeInstaller {
         }
     }
 
+    public static function register_runtime_schema() {
+        if (!class_exists('BubbaHub')) return;
+        BubbaHub::post_types();
+        BubbaHub::taxonomies();
+        BubbaHub::roles();
+        BubbaHub::ensure_pages();
+    }
+
     public static function install() {
         self::schema();
-        if (class_exists('BubbaHub')) {
-            BubbaHub::post_types();
-            BubbaHub::taxonomies();
-            BubbaHub::roles();
-            BubbaHub::ensure_pages();
+
+        // register_post_type() must run after WordPress has initialised
+        // WP_Rewrite. During normal plugin loading this means waiting for init.
+        if (did_action('init')) {
+            self::register_runtime_schema();
+            flush_rewrite_rules(false);
+        } else {
+            add_action('init', [__CLASS__, 'register_runtime_schema'], 1);
+            add_action('init', function () {
+                flush_rewrite_rules(false);
+            }, 99);
         }
+
         update_option('bubbahub_db_version', BUBBAHUB_VERSION, false);
         update_option('bubbahub_safe_install_complete', BUBBAHUB_VERSION, false);
-        flush_rewrite_rules(false);
     }
 }
