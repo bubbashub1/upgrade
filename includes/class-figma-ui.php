@@ -3,114 +3,26 @@ if (!defined('ABSPATH')) exit;
 
 /**
  * BubbaHub Figma-derived visual foundation.
- *
- * This ports the design tokens and responsive shell behaviour from the supplied
- * Figma Make source into the WordPress application without shipping the React app.
+ * Ports the supplied Figma Make visual language into WordPress without shipping
+ * the React demo or its sample data.
  */
 class BubbaHubFigmaUI {
-  public static function register() {
-    add_action('wp_enqueue_scripts', [__CLASS__, 'assets'], 30);
-  }
-
+  public static function register() { add_action('wp_enqueue_scripts', [__CLASS__, 'assets'], 30); }
   public static function assets() {
     if (!self::is_bubbahub_app()) return;
-
     wp_register_style('bubbahub-figma-ui', false, [], defined('BUBBAHUB_VERSION') ? BUBBAHUB_VERSION : null);
     wp_enqueue_style('bubbahub-figma-ui');
-
     $css = <<<'CSS'
-:root {
-  --bh-ink: #1e3330;
-  --bh-brand: #18b97a;
-  --bh-brand-dark: #137d59;
-  --bh-mint: #e3f5ee;
-  --bh-page: #f4f6f4;
-  --bh-card: #ffffff;
-  --bh-border: #e4edea;
-  --bh-border-strong: #d6e3df;
-  --bh-muted: #668785;
-  --bh-cream: #faedcd;
-  --bh-orange: #bc6c25;
-  --bh-radius-card: 24px;
-  --bh-radius-control: 12px;
-  --bh-shadow: 0 8px 30px rgba(30,51,48,.07);
-}
-
-.bh-app,
-.bh-public-pricing,
-.bh-public-signup,
-.bh-listing-editor,
-.bh-directory-search {
-  color: var(--bh-ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.bh-app a,
-.bh-public-pricing a,
-.bh-public-signup a { color: var(--bh-brand-dark); }
-
-.bh-app button,
-.bh-app input,
-.bh-app select,
-.bh-app textarea,
-.bh-public-pricing button,
-.bh-public-signup button,
-.bh-public-signup input,
-.bh-public-signup select,
-.bh-public-signup textarea { font: inherit; }
-
-.bh-figma-card {
-  background: var(--bh-card);
-  border: 1px solid var(--bh-border);
-  border-radius: var(--bh-radius-card);
-  box-shadow: var(--bh-shadow);
-}
-
-.bh-figma-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--bh-cream);
-  color: var(--bh-orange);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.bh-figma-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: var(--bh-radius-control);
-  background: var(--bh-brand);
-  color: #fff !important;
-  font-weight: 800;
-  text-decoration: none !important;
-  cursor: pointer;
-  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
-}
-.bh-figma-primary:hover { background: var(--bh-brand-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(24,185,122,.2); }
-
-@media (max-width: 820px) {
-  .bh-figma-card { border-radius: 18px; }
-}
+:root{--bh-ink:#1e3330;--bh-brand:#18b97a;--bh-brand-dark:#137d59;--bh-mint:#e3f5ee;--bh-page:#f4f6f4;--bh-card:#fff;--bh-border:#e4edea;--bh-border-strong:#d6e3df;--bh-muted:#668785;--bh-cream:#faedcd;--bh-orange:#bc6c25;--bh-danger:#b42318;--bh-radius-card:24px;--bh-radius-control:12px;--bh-shadow:0 8px 30px rgba(30,51,48,.07);--bh-shadow-hover:0 14px 38px rgba(30,51,48,.11)}
+.bh-app,.bh-public-pricing,.bh-public-signup,.bh-listing-editor,.bh-directory-search{color:var(--bh-ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}.bh-app{width:100%;max-width:1440px;margin:0 auto;padding:clamp(18px,3vw,40px) clamp(14px,3vw,32px);box-sizing:border-box}.bh-app *,.bh-public-pricing *,.bh-public-signup *,.bh-listing-editor *,.bh-directory-search *{box-sizing:border-box}.bh-app a,.bh-public-pricing a,.bh-public-signup a{color:var(--bh-brand-dark)}
+.bh-app button,.bh-app input,.bh-app select,.bh-app textarea,.bh-public-pricing button,.bh-public-signup button,.bh-public-signup input,.bh-public-signup select,.bh-public-signup textarea,.bh-listing-editor input,.bh-listing-editor select,.bh-listing-editor textarea{font:inherit}.bh-figma-card{background:var(--bh-card);border:1px solid var(--bh-border);border-radius:var(--bh-radius-card);box-shadow:var(--bh-shadow);transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease}.bh-figma-card:hover{box-shadow:var(--bh-shadow-hover);border-color:var(--bh-border-strong)}.bh-figma-eyebrow{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--bh-cream);color:var(--bh-orange);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.bh-figma-primary{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 17px;border:0;border-radius:var(--bh-radius-control);background:var(--bh-brand);color:#fff!important;font-weight:800;text-decoration:none!important;cursor:pointer;transition:transform .15s ease,background .15s ease,box-shadow .15s ease}.bh-figma-primary:hover{background:var(--bh-brand-dark);transform:translateY(-1px);box-shadow:0 6px 18px rgba(24,185,122,.2)}.bh-figma-primary:focus-visible,.bh-site-link:focus-visible,.bh-site-menu:focus-visible,.bh-site-join:focus-visible{outline:3px solid rgba(24,185,122,.35);outline-offset:2px}
+.bh-directory-search,.bh-listing-editor{width:100%;max-width:1200px;margin:0 auto}.bh-directory-search input,.bh-directory-search select,.bh-listing-editor input,.bh-listing-editor select,.bh-listing-editor textarea{min-height:44px;border:1px solid var(--bh-border-strong);border-radius:var(--bh-radius-control);background:#fff;color:var(--bh-ink);padding:9px 12px}.bh-directory-search input:focus,.bh-directory-search select:focus,.bh-listing-editor input:focus,.bh-listing-editor select:focus,.bh-listing-editor textarea:focus{border-color:var(--bh-brand);box-shadow:0 0 0 3px rgba(24,185,122,.12);outline:0}
+.bh-site-nav{position:sticky;top:0;z-index:100;width:100%;background:rgba(255,255,255,.96);backdrop-filter:saturate(150%) blur(10px);border-bottom:1px solid var(--bh-border);box-shadow:0 2px 14px rgba(26,46,34,.05)}.bh-site-nav-inner{max-width:1440px;min-height:68px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:20px}.bh-site-logo{display:inline-flex;align-items:center;text-decoration:none;font-size:21px;font-weight:800;letter-spacing:-.03em;color:var(--bh-ink);white-space:nowrap}.bh-site-logo span{color:var(--bh-brand)}.bh-site-links{display:flex;align-items:center;justify-content:center;gap:2px;flex:1}.bh-site-link{padding:10px 12px;border-radius:12px;color:var(--bh-ink);text-decoration:none;font-size:14px;font-weight:700;white-space:nowrap}.bh-site-link:hover,.bh-site-link.is-active{background:var(--bh-mint);color:var(--bh-brand-dark)}.bh-site-actions{display:flex;align-items:center;gap:10px}.bh-site-user{font-size:13px;font-weight:700;color:var(--bh-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis}.bh-site-join{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border-radius:12px;background:var(--bh-brand);color:#fff!important;text-decoration:none;font-weight:800;font-size:13px}.bh-site-menu{display:none;border:1px solid var(--bh-border-strong);background:#fff;border-radius:12px;padding:9px 12px;font-weight:800;color:var(--bh-ink);cursor:pointer}.bh-mobile-links{background:#fff}.bh-mobile-links a{display:block;padding:13px 20px;color:var(--bh-ink);text-decoration:none;font-weight:700;border-top:1px solid #eef3f1}.bh-mobile-links a:hover{background:var(--bh-mint);color:var(--bh-brand-dark)}.bh-mobile-links[hidden]{display:none}.bh-loading{opacity:.65;pointer-events:none}.bh-empty{padding:40px 20px;text-align:center;color:var(--bh-muted);background:#fff;border:1px dashed var(--bh-border-strong);border-radius:var(--bh-radius-card)}.bh-error{padding:14px 16px;border:1px solid #f1c7c2;border-radius:14px;background:#fff5f4;color:var(--bh-danger)}
+@media(max-width:1050px){.bh-site-links{gap:0}.bh-site-link{padding:9px 8px;font-size:13px}.bh-site-user{display:none}.bh-app{padding-left:20px;padding-right:20px}}@media(max-width:820px){.bh-site-nav-inner{min-height:60px;padding:0 14px;justify-content:space-between}.bh-site-links,.bh-site-actions{display:none}.bh-site-menu{display:block}.bh-mobile-links.is-open{display:block}.bh-app{padding:16px 12px}.bh-figma-card{border-radius:18px}.bh-figma-primary{width:100%}}@media(prefers-reduced-motion:reduce){.bh-figma-card,.bh-figma-primary{transition:none}.bh-figma-primary:hover{transform:none}}
 CSS;
-
-    wp_add_inline_style('bubbahub-figma-ui', $css);
+    wp_add_inline_style('bubbahub-figma-ui',$css);
   }
-
-  private static function is_bubbahub_app() {
-    if (is_admin()) return false;
-    if (is_front_page()) return true;
-    $post = get_post();
-    return $post && has_shortcode((string) $post->post_content, 'bubba_hub');
-  }
+  private static function is_bubbahub_app() { if(is_admin())return false;if(is_front_page())return true;$post=get_post();return $post&&has_shortcode((string)$post->post_content,'bubba_hub'); }
 }
-
-add_action('plugins_loaded', ['BubbaHubFigmaUI', 'register'], 25);
+add_action('plugins_loaded',['BubbaHubFigmaUI','register'],25);
