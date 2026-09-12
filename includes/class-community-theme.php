@@ -45,6 +45,7 @@ class BubbaHubCommunityTheme {
     $post = get_post();
     if (!is_front_page() && (!$post || !has_shortcode((string) $post->post_content, 'bubba_hub'))) return;
     wp_enqueue_style('bubbahub-community-theme', BUBBAHUB_URL . 'assests/css/community-theme.css', ['bubbahub-figma-ui'], BUBBAHUB_VERSION);
+    wp_enqueue_style('bubbahub-community-overrides', BUBBAHUB_URL . 'assests/css/community-overrides.css', ['bubbahub-community-theme'], BUBBAHUB_VERSION);
     wp_enqueue_script('bubbahub-community-theme', BUBBAHUB_URL . 'assests/js/community-theme.js', [], BUBBAHUB_VERSION, true);
   }
 
