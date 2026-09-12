@@ -1,0 +1,1 @@
+Next: Stage 9 two-way Google Sheets synchronization, change tracking, conflict handling and safer automated write-back.
