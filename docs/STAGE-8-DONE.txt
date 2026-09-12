@@ -1,0 +1,1 @@
+DONE — Stage 8 Google Sheets import is implemented. Version 4.1.6. Review before merging.
