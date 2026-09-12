@@ -1,81 +1,13 @@
 (function(){
-  'use strict';
-  var config=window.BubbaHubConfig||{};
-  var root=document.getElementById('bubbahub-app');
-  if(!root) return;
-
-  var cache=null;
-  function esc(value){return String(value==null?'':value).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]});}
-  function plain(value){return String(value==null?'':value).replace(/<[^>]*>/g,'').trim();}
-  function getField(group, names){
-    var fields=group&&group.custom_fields||{};
-    var wanted=names.map(function(n){return n.toLowerCase()});
-    var found='';
-    Object.keys(fields).some(function(k){
-      var item=fields[k]||{};
-      var label=String(item.label||k).toLowerCase();
-      if(wanted.indexOf(label)!==-1 && item.value!=='' && item.value!=null){found=item.value;return true;}
-      return false;
-    });
-    return found;
-  }
-  function chips(group){
-    var values=[];
-    var location=getField(group,['town','city','location','area','region']);
-    var age=getField(group,['age range','age_range','ages','age']);
-    var price=getField(group,['price','cost','pricing']);
-    var days=getField(group,['days','day','timetable','business hours']);
-    if(location) values.push(['⌖ '+plain(location),'']);
-    if(days) values.push(['◷ '+plain(days),'is-green']);
-    if(age) values.push(['♧ '+plain(age),'is-blue']);
-    if(price) values.push(['£ '+plain(price),'is-purple']);
-    if(!values.length) return '';
-    return '<div class="bh-card-meta">'+values.slice(0,4).map(function(v){return '<span class="bh-card-chip '+v[1]+'">'+esc(v[0])+'</span>'}).join('')+'</div>';
-  }
-  function apply(groups){
-    if(!groups||!groups.length) return;
-    var cards=root.querySelectorAll('.bh-section > .bh-grid > article.bh-card');
-    Array.prototype.forEach.call(cards,function(card){
-      if(card.dataset.bhPolished==='1') return;
-      var title=plain((card.querySelector('h3')||{}).textContent||'');
-      if(!title) return;
-      var group=groups.find(function(g){return plain(g.title)===title});
-      if(!group) return;
-      card.dataset.bhPolished='1';
-      var children=Array.prototype.slice.call(card.children);
-      var inner=document.createElement('div');
-      inner.className='bh-card-inner';
-      children.forEach(function(child){inner.appendChild(child)});
-      var image=plain(group.image||group.featured_image||'');
-      if(image){
-        var img=document.createElement('img');
-        img.className='bh-card-image';
-        img.src=image;
-        img.alt='';
-        img.loading='lazy';
-        img.decoding='async';
-        img.addEventListener('error',function(){img.remove();card.classList.remove('has-bh-image')},{once:true});
-        card.insertBefore(img,card.firstChild);
-        card.classList.add('has-bh-image');
-      }
-      var heading=inner.querySelector('h3');
-      if(heading){
-        var meta=document.createElement('div');
-        meta.innerHTML=chips(group);
-        if(meta.firstElementChild) heading.insertAdjacentElement('afterend',meta.firstElementChild);
-      }
-      card.appendChild(inner);
-    });
-  }
-  function load(){
-    if(cache){apply(cache);return}
-    if(!config.api)return;
-    fetch(config.api+'bootstrap',{headers:config.nonce?{'X-WP-Nonce':config.nonce}:{}})
-      .then(function(r){return r.ok?r.json():null})
-      .then(function(data){cache=data&&Array.isArray(data.groups)?data.groups:[];apply(cache)})
-      .catch(function(){/* The base cards remain fully usable without the polish data. */});
-  }
-  var observer=new MutationObserver(function(){load()});
-  observer.observe(root,{childList:true,subtree:true});
-  load();
+'use strict';
+var C=window.BubbaHubConfig||{},root=document.getElementById('bubbahub-app');
+if(!root)return;
+var cache=null;
+function plain(v){return String(v==null?'':v).replace(/<[^>]*>/g,'').trim()}
+function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]})}
+function field(g,names){var f=g&&g.custom_fields||g&&g.fields||{};var wanted=names.map(function(n){return n.toLowerCase()});var found='';Object.keys(f).some(function(k){var x=f[k];var label=String(x&&x.label||k).toLowerCase();var value=x&&x.value!=null?x.value:x;if(wanted.indexOf(label)>-1&&String(value).trim()!==''){found=value;return true}return false});return found}
+function chips(g){var a=[],loc=field(g,['town','city','location','area','region']),days=field(g,['days','day','timetable','business hours','opening hours']),age=field(g,['age range','age_range','ages','age']),price=field(g,['price','cost','pricing']);if(loc)a.push(['⌖ '+plain(loc),'']);if(days)a.push(['◷ '+plain(days),'is-green']);if(age)a.push(['♧ '+plain(age),'is-blue']);if(price)a.push(['£ '+plain(price),'is-purple']);return a.slice(0,4).map(function(v){return '<span class="bh-card-chip '+v[1]+'">'+esc(v[0])+'</span>'}).join('')}
+function decorate(){var groups=cache||[];if(!groups.length)return;root.querySelectorAll('.bh-section>.bh-grid>.bh-card').forEach(function(card){if(card.dataset.bhPolished==='1')return;var h=card.querySelector('h3');if(!h)return;var title=plain(h.textContent);var g=groups.find(function(x){return plain(x.title)===title});if(!g)return;card.dataset.bhPolished='1';var children=Array.prototype.slice.call(card.children),tag=card.querySelector('.bh-tag'),actions=card.querySelector('.bh-card-actions');var visual=document.createElement('div');visual.className='bh-card-visual';if(g.image||g.featured_image){var img=document.createElement('img');img.src=plain(g.image||g.featured_image);img.alt='';img.loading='lazy';img.decoding='async';img.onerror=function(){img.remove();};visual.appendChild(img);card.classList.add('has-bh-image')};var badge=document.createElement('span');badge.className='bh-card-badge';badge.innerHTML='▦ '+esc(plain(tag&&tag.textContent||'Group'));visual.appendChild(badge);var icons=document.createElement('div');icons.className='bh-card-icons';var fav=actions&&actions.querySelector('[data-fav]');var visit=actions&&actions.querySelector('[data-visited]');var i1=document.createElement('button');i1.type='button';i1.className='bh-card-icon';i1.setAttribute('aria-label','Favourite group');i1.innerHTML='♡';if(fav)i1.onclick=function(e){e.preventDefault();e.stopPropagation();fav.click()};var i2=document.createElement('button');i2.type='button';i2.className='bh-card-icon';i2.setAttribute('aria-label','Mark group visited');i2.innerHTML='◫';if(visit)i2.onclick=function(e){e.preventDefault();e.stopPropagation();visit.click()};icons.appendChild(i1);icons.appendChild(i2);visual.appendChild(icons);if(tag)tag.remove();card.insertBefore(visual,card.firstChild);var inner=document.createElement('div');inner.className='bh-card-inner';children.forEach(function(x){if(x!==tag&&x!==visual)inner.appendChild(x)});var meta=document.createElement('div');meta.className='bh-card-meta';meta.innerHTML=chips(g);if(meta.innerHTML)h.insertAdjacentElement('afterend',meta);card.appendChild(inner);});}
+function load(){if(cache){decorate();return}if(!C.api)return;fetch(C.api+'bootstrap',{headers:C.nonce?{'X-WP-Nonce':C.nonce}:{}}).then(function(r){return r.ok?r.json():null}).then(function(d){cache=d&&Array.isArray(d.groups)?d.groups:[];window.BubbaHubFigmaData=cache;decorate()}).catch(function(){});}
+new MutationObserver(function(){decorate()}).observe(root,{childList:true,subtree:true});load();
 })();
