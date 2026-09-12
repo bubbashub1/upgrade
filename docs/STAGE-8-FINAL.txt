@@ -1,0 +1,1 @@
+Stage 8 complete: Google Sheets import manager, admin import screen, field mapping, identity matching, import metadata, safety controls and static checks. Stage 9 remains for robust automated two-way sync and conflict resolution.
