@@ -1,0 +1,1 @@
+Test Stage 8 on staging: verify API endpoints, run Import Google Sheets, confirm count/created/updated values, inspect bh_group listings, verify Google ID and username metadata, confirm coordinates and search filters remain intact, and confirm no unintended deletion. Do not test against production until backup/staging verification is complete.

@@ -1,0 +1,1 @@
+Review note: the existing Google Sync class already contains a broader scheduled sync/write-back layer. Stage 8 adds a dedicated, explicit manual import workflow so administrators can test importing real sheet data safely before Stage 9 hardens two-way automation.

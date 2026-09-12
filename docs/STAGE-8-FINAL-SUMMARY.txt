@@ -1,0 +1,1 @@
+Google Sheets import manager added; plugin version 4.1.6; import is manual/admin-only; real data only; no demo records; Stage 9 will harden two-way sync.

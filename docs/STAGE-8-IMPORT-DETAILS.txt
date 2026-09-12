@@ -1,0 +1,1 @@
+Importer class: BubbaHubGoogleImport. Admin page slug: bubbahub-google-import. Action: bubbahub_google_import. Source settings are reused from BubbaHubGoogleSync. Target post type: bh_group.

@@ -1,0 +1,1 @@
+Safety: admin capability and nonce required. Import does not delete listings absent from source. No sample records are generated. Secure two-way write-back remains a separate Stage 9 concern.

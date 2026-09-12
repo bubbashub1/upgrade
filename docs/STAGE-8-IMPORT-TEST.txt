@@ -1,0 +1,1 @@
+Import test: verify API configuration, run manual import, check created/updated counts, inspect listings and coordinate metadata, and verify no unintended deletion.

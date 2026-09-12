@@ -1,0 +1,1 @@
+Import menu: BubbaHub > Import Google Sheets. Source configuration: BubbaHub > Google Sheets Sync. Target: bh_group.

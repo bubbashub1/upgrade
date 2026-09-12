@@ -2,7 +2,7 @@ name: BubbaHub PHP lint
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'stage-*' ]
   pull_request:
 
 jobs:
@@ -21,3 +21,5 @@ jobs:
           find . -type f -name '*.php' -not -path './vendor/*' -print0 | while IFS= read -r -d '' file; do
             php -l "$file"
           done
+      - name: Run Stage 8 static checks
+        run: php tests/stage-8-import-static.php

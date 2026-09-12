@@ -1,0 +1,1 @@
+Stage 8 Google Sheets import code and bootstrap are committed.

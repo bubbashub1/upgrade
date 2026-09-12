@@ -1,0 +1,1 @@
+Google Sheets import implementation complete. Manual admin workflow. No demo data.
