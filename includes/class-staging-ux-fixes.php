@@ -21,7 +21,7 @@ final class BubbaHubStagingUXFixes {
             'home' => 'home',
             'whats_on' => 'directory',
             'buddy' => 'buddy',
-            'myhub' => 'dashboard',
+            'myhub' => 'myhub',
             'support' => 'support',
             'about' => 'about',
             'leader' => 'leader',
