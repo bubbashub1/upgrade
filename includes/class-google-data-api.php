@@ -3,15 +3,12 @@ if (!defined('ABSPATH')) exit;
 
 /**
  * Real directory data API used by the Figma-inspired front end.
- *
  * WordPress remains the runtime source of truth. Google Sheets is imported by
  * BubbaHubGoogleSync; this API never ships demo/sample rows and only exposes
  * published bh_group records.
  */
 class BubbaHubGoogleDataApi {
-    public static function boot() {
-        add_action('rest_api_init', [__CLASS__, 'routes']);
-    }
+    public static function boot() { add_action('rest_api_init', [__CLASS__, 'routes']); }
 
     public static function routes() {
         register_rest_route('bubbahub/v1', '/listings', [
@@ -78,26 +75,19 @@ class BubbaHubGoogleDataApi {
     public static function listings(WP_REST_Request $request) {
         $page = max(1, (int) $request->get_param('page'));
         $per_page = min(100, max(1, (int) $request->get_param('per_page')));
-        $args = [
-            'post_type' => 'bh_group',
-            'post_status' => 'publish',
-            'posts_per_page' => $per_page,
-            'paged' => $page,
-            'orderby' => 'title',
-            'order' => 'ASC',
+        $q = new WP_Query([
+            'post_type' => 'bh_group', 'post_status' => 'publish',
+            'posts_per_page' => $per_page, 'paged' => $page,
+            'orderby' => 'title', 'order' => 'ASC',
             's' => (string) $request->get_param('search'),
-        ];
-        $q = new WP_Query($args);
-        $items = array_map([__CLASS__, 'item'], $q->posts);
+        ]);
         return new WP_REST_Response([
             'success' => true,
-            'items' => $items,
-            'page' => $page,
-            'per_page' => $per_page,
-            'total' => (int) $q->found_posts,
-            'pages' => (int) $q->max_num_pages,
+            'items' => array_map([__CLASS__, 'item'], $q->posts),
+            'page' => $page, 'per_page' => $per_page,
+            'total' => (int) $q->found_posts, 'pages' => (int) $q->max_num_pages,
             'source' => 'wordpress-bh_group',
-            'google_sync' => get_option('bubbahub_google_sync_last', []),
+            'google_sync' => get_option('bubbahub_google_sync_last_sync', []),
         ], 200);
     }
 
@@ -110,15 +100,9 @@ class BubbaHubGoogleDataApi {
     }
 
     public static function sync() {
-        if (!class_exists('BubbaHubGoogleSync')) {
-            return new WP_Error('sync_unavailable', 'Google sync is not available.', ['status' => 500]);
-        }
-        $ok = BubbaHubGoogleSync::sync();
-        if (!$ok) return new WP_Error('sync_failed', 'Google Sheets sync returned no usable listings.', ['status' => 502]);
-        return rest_ensure_response([
-            'success' => true,
-            'last_sync' => get_option('bubbahub_google_sync_last', []),
-        ]);
+        if (!class_exists('BubbaHubGoogleSync')) return new WP_Error('sync_unavailable', 'Google sync is not available.', ['status' => 500]);
+        if (!BubbaHubGoogleSync::sync()) return new WP_Error('sync_failed', 'Google Sheets sync returned no usable listings.', ['status' => 502]);
+        return rest_ensure_response(['success' => true, 'last_sync' => get_option('bubbahub_google_sync_last_sync', [])]);
     }
 }
 BubbaHubGoogleDataApi::boot();
