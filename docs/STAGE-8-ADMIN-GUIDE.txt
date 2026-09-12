@@ -1,0 +1,1 @@
+Google Sheets import: open BubbaHub > Google Sheets Sync and verify the configured API endpoints, then open BubbaHub > Import Google Sheets and run the manual import. The importer creates or updates bh_group listings from real API rows, matches by Google ID or organiser username, does not delete missing rows, and creates no demo data.
