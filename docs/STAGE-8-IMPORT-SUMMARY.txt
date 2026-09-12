@@ -1,0 +1,1 @@
+Stage 8 Google Sheets import is implemented in includes/class-google-import.php. It imports real rows from the configured Google Apps Script endpoints into bh_group, matches by Google ID then organiser username, updates existing listings, creates missing listings, preserves WordPress-only listings, records import metadata, and creates no demo data.
