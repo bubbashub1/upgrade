@@ -1,0 +1,141 @@
+/* BubbaHub Figma-inspired listing cards */
+.bh-app {
+  --bh-teal:#087f78;
+  --bh-teal-dark:#075f5b;
+  --bh-green:#19b979;
+  --bh-mint:#e7f6ef;
+  --bh-cream:#fffaf2;
+  --bh-ink:#173b38;
+  --bh-muted:#718c87;
+  --bh-line:#e0ece8;
+}
+
+.bh-app .bh-section > .bh-grid > .bh-card {
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:410px;
+  padding:0;
+  border:1px solid var(--bh-line);
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(23,59,56,.07);
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.bh-app .bh-section > .bh-grid > .bh-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 18px 40px rgba(23,59,56,.12);
+  border-color:#cfe4dd;
+}
+
+/* A visual header is generated without inventing business data. If a real
+   listing image exists, figma-polish.js replaces this with the real image. */
+.bh-app .bh-section > .bh-grid > .bh-card::before {
+  content:"";
+  display:block;
+  height:132px;
+  flex:0 0 132px;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(255,255,255,.55) 0 18px, transparent 19px),
+    radial-gradient(circle at 18% 70%, rgba(255,255,255,.28) 0 34px, transparent 35px),
+    linear-gradient(135deg,#d9f0e7 0%,#c4e8dc 48%,#f6ead9 100%);
+}
+.bh-app .bh-section > .bh-grid > .bh-card.has-bh-image::before {display:none}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-image {
+  display:block;
+  width:100%;
+  height:132px;
+  object-fit:cover;
+  flex:0 0 132px;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-inner {
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  padding:18px 20px 18px;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-tag {
+  align-self:flex-start;
+  margin:0 0 7px;
+  padding:6px 10px;
+  background:#ddf5eb;
+  color:#11976b;
+  border-radius:999px;
+  font-size:11px;
+  line-height:1;
+}
+.bh-app .bh-section > .bh-grid > .bh-card h3 {
+  margin:3px 0 8px;
+  color:var(--bh-ink);
+  font-size:21px;
+  line-height:1.18;
+  letter-spacing:-.025em;
+}
+.bh-app .bh-section > .bh-grid > .bh-card p {
+  margin:0 0 12px;
+  color:var(--bh-muted);
+  font-size:14px;
+  line-height:1.58;
+}
+.bh-card-meta {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:2px 0 12px;
+}
+.bh-card-chip {
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#f1f7f5;
+  color:#456c66;
+  font-size:11px;
+  font-weight:800;
+}
+.bh-card-chip.is-green{background:#e8f8e7;color:#23844b}
+.bh-card-chip.is-purple{background:#f1eaff;color:#7250a7}
+.bh-card-chip.is-blue{background:#e5f4fb;color:#197091}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions {
+  margin-top:auto;
+  padding-top:14px;
+  border-top:1px solid #edf3f1;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions > .bh-btn {
+  min-height:40px;
+  border-radius:999px;
+  padding:9px 13px;
+  font-size:12px;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions > .bh-btn:first-child {
+  background:var(--bh-teal);
+  border-color:var(--bh-teal);
+  color:#fff;
+  order:3;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions .bh-actions {
+  display:flex;
+  flex:1;
+  gap:7px;
+  margin:0;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions .bh-actions .bh-btn {
+  flex:1;
+  background:#fff;
+  border:1px solid #bcd9d2;
+  color:#31534f;
+}
+.bh-app .bh-section > .bh-grid > .bh-card .bh-card-actions .bh-actions .bh-btn:first-child::first-letter {color:var(--bh-teal)}
+
+/* Keep the home page heading close to the supplied Figma composition. */
+.bh-app .bh-section > h2 {
+  color:var(--bh-ink);
+  font-size:28px;
+  letter-spacing:-.03em;
+}
+
+@media(max-width:900px){
+  .bh-app .bh-section > .bh-grid > .bh-card{min-height:0}
+}
