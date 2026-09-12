@@ -4,7 +4,7 @@ $plugin = file_get_contents(__DIR__.'/../bubba-hub-production.php');
 $importer = file_get_contents(__DIR__.'/../includes/class-google-import.php');
 $checks = [
   strpos($plugin, "class-google-import.php") !== false,
-  preg_match("/BUBBAHUB_VERSION',\\s*'4\\.2\\.[0-9]+'/", $plugin) === 1,
+  preg_match("/BUBBAHUB_VERSION',\\s*'4\\.3\\.[0-9]+'/", $plugin) === 1,
   strpos($importer, 'class BubbaHubGoogleImport') !== false,
   strpos($importer, 'manage_bubbahub') !== false,
   strpos($importer, "post_type'=>'bh_group'") !== false,
