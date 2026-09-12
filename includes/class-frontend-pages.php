@@ -36,7 +36,6 @@ class BubbaHubFrontendPages {
         if($definition['page']==='signup')$content='[bubbahub_signup]';
         $page_id=wp_insert_post(['post_title'=>$definition['title'],'post_name'=>$definition['slug'],'post_content'=>$content,'post_status'=>'publish','post_type'=>'page','comment_status'=>'closed'],true);
         if(is_wp_error($page_id))continue;
-        $changed=true;
       }
       $saved[$key]=(int)$page_id;$changed=true;
     }
@@ -71,7 +70,7 @@ class BubbaHubFrontendPages {
 
   public static function register(){
     add_shortcode('bubbahub_navigation',[__CLASS__,'shortcode']);
-    if(!get_option(self::OPTION,false))add_action('init',[__CLASS__,'ensure'],20);
+    if(!get_option(self::OPTION,false))self::ensure();
   }
 }
 add_action('wp_loaded',['BubbaHubFrontendPages','register'],20);
