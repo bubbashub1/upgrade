@@ -1,79 +1,37 @@
 <?php
 if (!defined('ABSPATH')) exit;
-
-/** Secure front-end listing editor for leaders and administrators. */
 class BubbaHubListingEditor {
   const META_PREFIX = '_bubbahub_';
-
   public static function register() {
-    register_rest_route('bubbahub/v1', '/leader/listings/(?P<id>\d+)', ['methods'=>'GET','callback'=>[__CLASS__,'get'],'permission_callback'=>[__CLASS__,'can_access']]);
-    register_rest_route('bubbahub/v1', '/leader/listings/(?P<id>\d+)', ['methods'=>'POST','callback'=>[__CLASS__,'save'],'permission_callback'=>[__CLASS__,'can_access']]);
+    register_rest_route('bubbahub/v1','/leader/listings/(?P<id>\d+)', ['methods'=>'GET','callback'=>[__CLASS__,'get'],'permission_callback'=>[__CLASS__,'can_access']]);
+    register_rest_route('bubbahub/v1','/leader/listings/(?P<id>\d+)', ['methods'=>'POST','callback'=>[__CLASS__,'save'],'permission_callback'=>[__CLASS__,'can_access']]);
   }
-
   public static function shortcode($atts=[]) {
     if (!is_user_logged_in()) return '<div class="bh-editor-notice">Please sign in to edit a listing.</div>';
-    $atts=shortcode_atts(['id'=>0],$atts,'bubbahub_listing_editor');
-    $id=absint($atts['id']);
-    if (!$id && is_singular('bh_group')) $id=get_the_ID();
-    $post=get_post($id);
-    if (!$post || $post->post_type!=='bh_group') return '<div class="bh-editor-notice">Listing not found.</div>';
-    if (!self::can_edit_post($post)) return '<div class="bh-editor-notice">You do not have permission to edit this listing.</div>';
-    $item=BubbaHubListings::get($id);
-    $f=$item['fields'];
-    $fields=[
-      'title'=>['Listing name','text',$item['title']],
-      'content'=>['Description','textarea',$post->post_content],
-      'street'=>['Street / address','text',$f['street']], 'city'=>['Town / city','text',$f['city']],
-      'region'=>['County / region','text',$f['region']], 'zip'=>['Postcode','text',$f['zip']],
-      'age_range'=>['Age range','text',$f['age_range']], 'price'=>['Price','text',$f['price']],
-      'day'=>['Days','text',$f['day']], 'timetable'=>['Timetable','textarea',$f['timetable']],
-      'business_hours'=>['Business hours','textarea',$f['business_hours']], 'term_time'=>['Term time','text',$f['term_time']],
-      'website'=>['Website','url',$f['website']], 'email'=>['Email','email',$f['email']],
-      'facebook'=>['Facebook','url',$f['facebook']], 'instagram'=>['Instagram','url',$f['instagram']],
-      'latitude'=>['Latitude','number',$f['latitude']], 'longitude'=>['Longitude','number',$f['longitude']],
-    ];
+    $atts=shortcode_atts(['id'=>0],$atts,'bubbahub_listing_editor'); $id=absint($atts['id']); if(!$id&&is_singular('bh_group'))$id=get_the_ID();
+    $post=get_post($id); if(!$post||$post->post_type!=='bh_group')return '<div class="bh-editor-notice">Listing not found.</div>'; if(!self::can_edit_post($post))return '<div class="bh-editor-notice">You do not have permission to edit this listing.</div>';
+    $item=BubbaHubListings::get($id); $f=$item['fields'];
+    $fields=['title'=>['Listing name','text',$item['title']],'content'=>['Description','textarea',$post->post_content],'street'=>['Street / address','text',$f['street']],'city'=>['Town / city','text',$f['city']],'region'=>['County / region','text',$f['region']],'zip'=>['Postcode','text',$f['zip']],'age_range'=>['Age range','text',$f['age_range']],'price'=>['Price','text',$f['price']],'day'=>['Days','text',$f['day']],'timetable'=>['Timetable','textarea',$f['timetable']],'business_hours'=>['Business hours','textarea',$f['business_hours']],'term_time'=>['Term time','text',$f['term_time']],'website'=>['Website','url',$f['website']],'email'=>['Email','email',$f['email']],'facebook'=>['Facebook','url',$f['facebook']],'instagram'=>['Instagram','url',$f['instagram']],'latitude'=>['Latitude','number',$f['latitude']],'longitude'=>['Longitude','number',$f['longitude']]];
     ob_start(); ?>
-    <form class="bh-listing-editor" data-listing-id="<?php echo (int)$id; ?>">
-      <div class="bh-editor-header"><div><span class="bh-editor-kicker">Leader Portal</span><h2>Edit listing</h2><p>Changes are saved to the WordPress listing record.</p></div><button type="submit">Save changes</button></div>
-      <div class="bh-editor-grid">
-      <?php foreach($fields as $key=>$field): ?><label class="bh-editor-field <?php echo $key==='content'||in_array($key,['timetable','business_hours'],true)?'bh-editor-wide':''; ?>"><span><?php echo esc_html($field[0]); ?></span><?php if($field[1]==='textarea'): ?><textarea name="<?php echo esc_attr($key); ?>"><?php echo esc_textarea($field[2]); ?></textarea><?php else: ?><input type="<?php echo esc_attr($field[1]); ?>" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($field[2]); ?>" <?php echo in_array($key,['latitude','longitude'],true)?'step="any"':''; ?>><?php endif; ?></label><?php endforeach; ?>
-      </div>
-      <div class="bh-editor-status" aria-live="polite"></div>
-    </form>
-    <style>
-      .bh-listing-editor{max-width:1000px;margin:24px auto;padding:24px;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
-      .bh-editor-header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:22px}.bh-editor-kicker{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.65}.bh-editor-header h2{margin:4px 0}.bh-editor-header p{margin:0;opacity:.7}.bh-editor-header button{border:0;border-radius:10px;padding:12px 18px;cursor:pointer}.bh-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.bh-editor-field{display:flex;flex-direction:column;gap:6px;font-weight:600}.bh-editor-field input,.bh-editor-field textarea{width:100%;box-sizing:border-box;border:1px solid #d9dde3;border-radius:10px;padding:11px;font:inherit;font-weight:400}.bh-editor-field textarea{min-height:100px;resize:vertical}.bh-editor-wide{grid-column:1/-1}.bh-editor-status{margin-top:14px;min-height:20px;font-weight:600}.bh-editor-notice{padding:16px;border-radius:12px;background:#f6f7f8}@media(max-width:700px){.bh-editor-header{flex-direction:column;align-items:stretch}.bh-editor-grid{grid-template-columns:1fr}.bh-editor-wide{grid-column:auto}}
-    </style>
-    <script>(function(){const form=document.currentScript&&document.currentScript.previousElementSibling;if(!form||!form.matches('.bh-listing-editor'))return;form.addEventListener('submit',async e=>{e.preventDefault();const status=form.querySelector('.bh-editor-status');const button=form.querySelector('button[type="submit"]');const data={};new FormData(form).forEach((v,k)=>data[k]=v);status.textContent='Saving…';button.disabled=true;try{const r=await fetch('<?php echo esc_url(rest_url('bubbahub/v1/leader/listings/')); ?>'+form.dataset.listingId,{method:'POST',headers:{'Content-Type':'application/json','X-WP-Nonce':'<?php echo esc_js(wp_create_nonce('wp_rest')); ?>'},credentials:'same-origin',body:JSON.stringify(data)});const json=await r.json();if(!r.ok)throw new Error(json.message||'Unable to save changes.');status.textContent='Saved successfully.';}catch(err){status.textContent=err.message||'Unable to save changes.';}finally{button.disabled=false;}})})();</script>
+    <form class="bh-listing-editor" data-listing-id="<?php echo (int)$id; ?>"><div class="bh-editor-header"><div><span class="bh-editor-kicker">Leader Portal</span><h2>Edit listing</h2><p>Changes are saved to the WordPress listing record.</p></div><button type="submit">Save changes</button></div><div class="bh-editor-grid">
+    <?php foreach($fields as $key=>$field): ?><label class="bh-editor-field <?php echo $key==='content'||in_array($key,['timetable','business_hours'],true)?'bh-editor-wide':''; ?>"><span><?php echo esc_html($field[0]); ?></span><?php if($field[1]==='textarea'): ?><textarea name="<?php echo esc_attr($key); ?>"><?php echo esc_textarea($field[2]); ?></textarea><?php else: ?><input type="<?php echo esc_attr($field[1]); ?>" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($field[2]); ?>" <?php echo in_array($key,['latitude','longitude'],true)?'step="any"':''; ?>><?php endif; ?></label><?php endforeach; ?></div><div class="bh-editor-status" aria-live="polite"></div></form>
+    <style>.bh-listing-editor{max-width:1000px;margin:24px auto;padding:24px;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.06)}.bh-editor-header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:22px}.bh-editor-kicker{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.65}.bh-editor-header h2{margin:4px 0}.bh-editor-header p{margin:0;opacity:.7}.bh-editor-header button{border:0;border-radius:10px;padding:12px 18px;cursor:pointer}.bh-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.bh-editor-field{display:flex;flex-direction:column;gap:6px;font-weight:600}.bh-editor-field input,.bh-editor-field textarea{width:100%;box-sizing:border-box;border:1px solid #d9dde3;border-radius:10px;padding:11px;font:inherit;font-weight:400}.bh-editor-field textarea{min-height:100px;resize:vertical}.bh-editor-wide{grid-column:1/-1}.bh-editor-status{margin-top:14px;min-height:20px;font-weight:600}.bh-editor-notice{padding:16px;border-radius:12px;background:#f6f7f8}@media(max-width:700px){.bh-editor-header{flex-direction:column;align-items:stretch}.bh-editor-grid{grid-template-columns:1fr}.bh-editor-wide{grid-column:auto}}</style>
+    <script>(function(){const script=document.currentScript;const root=script&&script.parentElement;const form=root&&root.querySelector('.bh-listing-editor');if(!form)return;form.addEventListener('submit',async e=>{e.preventDefault();const status=form.querySelector('.bh-editor-status'),button=form.querySelector('button[type="submit"]'),data={};new FormData(form).forEach((v,k)=>data[k]=v);status.textContent='Saving…';button.disabled=true;try{const r=await fetch('<?php echo esc_url(rest_url('bubbahub/v1/leader/listings/')); ?>'+form.dataset.listingId,{method:'POST',headers:{'Content-Type':'application/json','X-WP-Nonce':'<?php echo esc_js(wp_create_nonce('wp_rest')); ?>'},credentials:'same-origin',body:JSON.stringify(data)});const json=await r.json();if(!r.ok)throw new Error(json.message||'Unable to save changes.');status.textContent='Saved successfully.';}catch(err){status.textContent=err.message||'Unable to save changes.';}finally{button.disabled=false;}});})();</script>
     <?php return ob_get_clean();
   }
-
-  private static function can_edit_post($post) {
-    if (!is_user_logged_in()) return false;
-    if (current_user_can('manage_bubbahub')) return true;
-    return current_user_can('edit_bubbahub_items') && self::owns($post);
-  }
-  public static function can_access($request) { $post=get_post(absint($request['id'])); return $post && $post->post_type==='bh_group' && self::can_edit_post($post); }
-  private static function owns($post) { $user=wp_get_current_user(); $owner=(string)get_post_meta($post->ID,BubbaHubListings::META_OWNER,true); return (int)$post->post_author===get_current_user_id() || ($owner!=='' && $user && $user->user_login===$owner); }
-  public static function get($request) { return rest_ensure_response(BubbaHubListings::get(absint($request['id']))); }
-
-  public static function save($request) {
-    $id=absint($request['id']); $post=get_post($id); if(!$post||$post->post_type!=='bh_group')return new WP_Error('not_found','Listing not found.',['status'=>404]);
-    $data=$request->get_json_params(); if(!is_array($data))$data=[];
-    $update=['ID'=>$id];
-    if(array_key_exists('title',$data)){ $title=sanitize_text_field($data['title']); if($title==='')return new WP_Error('invalid_title','A listing title is required.',['status'=>400]); $update['post_title']=$title; }
+  private static function can_edit_post($post){if(!is_user_logged_in())return false;if(current_user_can('manage_bubbahub'))return true;return current_user_can('edit_bubbahub_items')&&self::owns($post);}
+  public static function can_access($request){$post=get_post(absint($request['id']));return $post&&$post->post_type==='bh_group'&&self::can_edit_post($post);}
+  private static function owns($post){$user=wp_get_current_user();$owner=(string)get_post_meta($post->ID,BubbaHubListings::META_OWNER,true);return (int)$post->post_author===get_current_user_id()||($owner!==''&&$user&&$user->user_login===$owner);}
+  public static function get($request){return rest_ensure_response(BubbaHubListings::get(absint($request['id'])));}
+  public static function save($request){
+    $id=absint($request['id']);$post=get_post($id);if(!$post||$post->post_type!=='bh_group')return new WP_Error('not_found','Listing not found.',['status'=>404]);$data=$request->get_json_params();if(!is_array($data))$data=[];$update=['ID'=>$id];
+    if(array_key_exists('title',$data)){ $title=sanitize_text_field($data['title']);if($title==='')return new WP_Error('invalid_title','A listing title is required.',['status'=>400]);$update['post_title']=$title; }
     if(array_key_exists('content',$data))$update['post_content']=wp_kses_post($data['content']);
     if(count($update)>1){$result=wp_update_post(wp_slash($update),true);if(is_wp_error($result))return $result;}
-    $keys=['street','city','region','zip','website','email','facebook','instagram','price','term_time','age_range','day','timetable','business_hours','latitude','longitude'];
-    foreach($keys as $key){if(!array_key_exists($key,$data))continue;$value=self::sanitize_field($key,$data[$key]);update_post_meta($id,self::META_PREFIX.$key,$value);self::write_coordinate_aliases($id,$key,$value);}
-    update_post_meta($id,'_bubbahub_last_frontend_edit',current_time('mysql'));update_post_meta($id,'_bubbahub_last_frontend_editor',get_current_user_id());
-    return rest_ensure_response(BubbaHubListings::get($id));
+    $keys=['street','city','region','zip','website','email','facebook','instagram','price','term_time','age_range','day','timetable','business_hours','latitude','longitude'];foreach($keys as $key){if(!array_key_exists($key,$data))continue;$value=self::sanitize_field($key,$data[$key]);update_post_meta($id,self::META_PREFIX.$key,$value);self::write_coordinate_aliases($id,$key,$value);}
+    update_post_meta($id,'_bubbahub_last_frontend_edit',current_time('mysql'));update_post_meta($id,'_bubbahub_last_frontend_editor',get_current_user_id());return rest_ensure_response(BubbaHubListings::get($id));
   }
-  private static function sanitize_field($key,$value){
-    if(in_array($key,['latitude','longitude'],true)){if($value===''||!is_numeric($value))return ''; $n=(float)$value;if($key==='latitude'&&($n<-90||$n>90))return '';if($key==='longitude'&&($n<-180||$n>180))return '';return (string)$n;}
-    if($key==='email')return sanitize_email($value); if(in_array($key,['website','facebook','instagram'],true))return esc_url_raw($value); if(in_array($key,['timetable','business_hours'],true))return sanitize_textarea_field($value); return sanitize_text_field($value);
-  }
+  private static function sanitize_field($key,$value){if(in_array($key,['latitude','longitude'],true)){if($value===''||!is_numeric($value))return ''; $n=(float)$value;if($key==='latitude'&&($n<-90||$n>90))return '';if($key==='longitude'&&($n<-180||$n>180))return '';return (string)$n;}if($key==='email')return sanitize_email($value);if(in_array($key,['website','facebook','instagram'],true))return esc_url_raw($value);if(in_array($key,['timetable','business_hours'],true))return sanitize_textarea_field($value);return sanitize_text_field($value);}
   private static function write_coordinate_aliases($id,$key,$value){if($key==='latitude'){update_post_meta($id,self::META_PREFIX.'lat',$value);update_post_meta($id,self::META_PREFIX.'manual_lat',$value);}if($key==='longitude'){update_post_meta($id,self::META_PREFIX.'lng',$value);update_post_meta($id,self::META_PREFIX.'long',$value);update_post_meta($id,self::META_PREFIX.'lon',$value);update_post_meta($id,self::META_PREFIX.'manual_lng',$value);}}
 }
-add_action('rest_api_init',['BubbaHubListingEditor','register']);
-add_shortcode('bubbahub_listing_editor',['BubbaHubListingEditor','shortcode']);
+add_action('rest_api_init',['BubbaHubListingEditor','register']);add_shortcode('bubbahub_listing_editor',['BubbaHubListingEditor','shortcode']);
