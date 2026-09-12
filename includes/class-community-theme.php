@@ -7,8 +7,28 @@ if (!defined('ABSPATH')) exit;
  */
 class BubbaHubCommunityTheme {
   public static function register() {
-    add_action('wp_enqueue_scripts', [__CLASS__, 'assets'], 40);
+    add_action('wp_loaded', [__CLASS__, 'repair_page_map'], 29);
     add_action('wp_loaded', [__CLASS__, 'navigation_shortcode'], 30);
+    add_action('wp_enqueue_scripts', [__CLASS__, 'assets'], 40);
+  }
+
+  public static function repair_page_map() {
+    if (!class_exists('BubbaHubFrontendPages')) return;
+    $saved = (array) get_option('bubbahub_frontend_pages_v1', []);
+    $defs = BubbaHubFrontendPages::definitions();
+    $changed = false;
+    foreach ($defs as $key => $definition) {
+      $expected_slug = sanitize_title((string) ($definition['slug'] ?? $key));
+      $id = absint($saved[$key] ?? 0);
+      $post = $id ? get_post($id) : null;
+      if ($post && $post->post_type === 'page' && $post->post_status !== 'trash' && $post->post_name === $expected_slug) continue;
+      $existing = get_page_by_path($expected_slug, OBJECT, 'page');
+      if ($existing) {
+        $saved[$key] = (int) $existing->ID;
+        $changed = true;
+      }
+    }
+    if ($changed) update_option('bubbahub_frontend_pages_v1', $saved, false);
   }
 
   public static function assets() {
