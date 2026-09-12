@@ -14,6 +14,7 @@ define('BUBBAHUB_DIR',plugin_dir_path(__FILE__));
 define('BUBBAHUB_URL',plugin_dir_url(__FILE__));
 require_once BUBBAHUB_DIR.'includes/class-bubbahub.php';
 require_once BUBBAHUB_DIR.'includes/class-listings.php';
+require_once BUBBAHUB_DIR.'includes/class-listing-editor.php';
 require_once BUBBAHUB_DIR.'includes/class-rest.php';
 require_once BUBBAHUB_DIR.'includes/class-admin.php';
 require_once BUBBAHUB_DIR.'includes/class-finance.php';
@@ -33,7 +34,6 @@ add_action('plugins_loaded', function(){
   $stored_version=(string)get_option('bubbahub_db_version','0');
   if(version_compare($stored_version,BUBBAHUB_VERSION,'<')){
     update_option('bubbahub_pending_upgrade',['from'=>$stored_version,'to'=>BUBBAHUB_VERSION],false);
-    update_option('bubbahub_db_version',BUBBAHUB_VERSION,false);
   }
   new BubbaHub();
 });
