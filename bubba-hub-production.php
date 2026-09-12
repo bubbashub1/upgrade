@@ -31,6 +31,7 @@ require_once BUBBAHUB_DIR.'includes/class-frontend-pages.php';
 require_once BUBBAHUB_DIR.'includes/class-openstreetmap.php';
 require_once BUBBAHUB_DIR.'includes/class-directory-search.php';
 require_once BUBBAHUB_DIR.'includes/class-figma-ui.php';
+require_once BUBBAHUB_DIR.'includes/class-community-theme.php';
 require_once BUBBAHUB_DIR.'includes/class-security-audit.php';
 require_once BUBBAHUB_DIR.'includes/class-ux-seo.php';
 require_once BUBBAHUB_DIR.'includes/class-staging-ux-fixes.php';
