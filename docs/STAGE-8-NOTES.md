@@ -1,0 +1,1 @@
+Stage 8 adds controlled manual Google Sheets import. Existing records are matched by Google ID first and organiser username second. No demo data is created and missing Google rows are not deleted. Stage 9 will extend this into robust two-way sync and conflict handling.
