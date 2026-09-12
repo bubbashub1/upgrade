@@ -1,0 +1,1 @@
+BubbaHub Stage 8 — Google Sheets Import. Implementation lives in includes/class-google-import.php and is loaded by the main plugin file. Version 4.1.6.
