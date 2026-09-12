@@ -26,6 +26,7 @@ require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-rest-bootstrap-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-listing-migration.php';
 require_once BUBBAHUB_DIR.'includes/class-frontend-pages.php';
+require_once BUBBAHUB_DIR.'includes/class-openstreetmap.php';
 
 register_activation_hook(__FILE__, ['BubbaHub','activate']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
