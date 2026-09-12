@@ -1,4 +1,4 @@
-name: BubbaHub 4.2 Package and Google Sheet Check
+name: BubbaHub 4.3 Package and Google Sheet Check
 
 on:
   push:
@@ -16,6 +16,11 @@ jobs:
         run: |
           set -e
           find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Check JavaScript syntax
+        run: |
+          set -e
+          find assests/js -type f -name '*.js' -print0 | while IFS= read -r -d '' f; do node --check "$f"; done
 
       - name: Run static checks
         run: php tests/stage-8-import-static.php
@@ -45,7 +50,7 @@ jobs:
       - name: Build plugin ZIP
         run: |
           set -e
-          rm -rf package BubbaHub-4.2.0.zip
+          rm -rf package BubbaHub-4.3.0.zip
           mkdir -p package/bubba-hub-production
           cp bubba-hub-production.php package/bubba-hub-production/
           cp -R includes package/bubba-hub-production/
@@ -53,15 +58,15 @@ jobs:
           cp -R templates package/bubba-hub-production/
           find package -type f -name '*.zip' -delete
           cd package
-          zip -qr ../BubbaHub-4.2.0.zip bubba-hub-production
+          zip -qr ../BubbaHub-4.3.0.zip bubba-hub-production
           cd ..
-          unzip -t BubbaHub-4.2.0.zip
+          unzip -t BubbaHub-4.3.0.zip
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: BubbaHub-4.2.0
-          path: BubbaHub-4.2.0.zip
+          name: BubbaHub-4.3.0
+          path: BubbaHub-4.3.0.zip
           if-no-files-found: error
           retention-days: 14
 
