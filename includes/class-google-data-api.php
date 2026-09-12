@@ -4,8 +4,7 @@ if (!defined('ABSPATH')) exit;
 /**
  * Real directory data API used by the Figma-inspired front end.
  * WordPress remains the runtime source of truth. Google Sheets is imported by
- * BubbaHubGoogleSync; this API never ships demo/sample rows and only exposes
- * published bh_group records.
+ * BubbaHubGoogleSync; internal Google row identifiers are never exposed publicly.
  */
 class BubbaHubGoogleDataApi {
     public static function boot() { add_action('rest_api_init', [__CLASS__, 'routes']); }
@@ -42,7 +41,6 @@ class BubbaHubGoogleDataApi {
         $id = $post->ID;
         return [
             'id' => $id,
-            'google_id' => (string) get_post_meta($id, '_bubbahub_google_id', true),
             'title' => get_the_title($id),
             'description' => wp_strip_all_tags($post->post_content),
             'url' => get_permalink($id),
@@ -87,7 +85,6 @@ class BubbaHubGoogleDataApi {
             'page' => $page, 'per_page' => $per_page,
             'total' => (int) $q->found_posts, 'pages' => (int) $q->max_num_pages,
             'source' => 'wordpress-bh_group',
-            'google_sync' => get_option('bubbahub_google_sync_last_sync', []),
         ], 200);
     }
 
