@@ -2,14 +2,14 @@
 /**
  * Plugin Name: BubbaHub Production
  * Description: Production WordPress application for BubbaHub: groups, events, family hub, support, app directory, leader portal, bookings, payments, wallets and REST API.
- * Version: 4.1.6
+ * Version: 4.1.7
  * Author: BubbaHub
  * Requires at least: 6.4
  * Requires PHP: 8.0
  */
 if (!defined('ABSPATH')) exit;
 
-define('BUBBAHUB_VERSION','4.1.6');
+define('BUBBAHUB_VERSION','4.1.7');
 define('BUBBAHUB_DIR',plugin_dir_path(__FILE__));
 define('BUBBAHUB_URL',plugin_dir_url(__FILE__));
 require_once BUBBAHUB_DIR.'includes/class-bubbahub.php';
@@ -23,6 +23,7 @@ require_once BUBBAHUB_DIR.'includes/class-finance-security.php';
 require_once BUBBAHUB_DIR.'includes/class-account-types.php';
 require_once BUBBAHUB_DIR.'includes/class-google-sync.php';
 require_once BUBBAHUB_DIR.'includes/class-google-import.php';
+require_once BUBBAHUB_DIR.'includes/class-google-data-api.php';
 require_once BUBBAHUB_DIR.'includes/class-shortcode-assets-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-rest-bootstrap-fix.php';
 require_once BUBBAHUB_DIR.'includes/class-listing-migration.php';
