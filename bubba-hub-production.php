@@ -39,6 +39,7 @@ require_once BUBBAHUB_DIR.'includes/class-ux-seo.php';
 require_once BUBBAHUB_DIR.'includes/class-staging-ux-fixes.php';
 require_once BUBBAHUB_DIR.'includes/class-safe-installer.php';
 require_once BUBBAHUB_DIR.'includes/class-bookings.php';
+require_once BUBBAHUB_DIR.'includes/class-booking-options.php';
 
 register_activation_hook(__FILE__, ['BubbaHubSafeInstaller','install']);
 register_deactivation_hook(__FILE__, ['BubbaHub','deactivate']);
