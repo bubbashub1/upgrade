@@ -22,14 +22,7 @@ final class BubbaHubBookingOptions {
     }
 
     public static function admin_menu() {
-        add_submenu_page(
-            'options-general.php',
-            'BubbaHub Booking Options',
-            'Booking Options',
-            'manage_options',
-            'bubbahub-booking-options',
-            [__CLASS__, 'settings_page']
-        );
+        add_submenu_page('options-general.php', 'BubbaHub Booking Options', 'Booking Options', 'manage_options', 'bubbahub-booking-options', [__CLASS__, 'settings_page']);
     }
 
     public static function register_settings() {
@@ -46,7 +39,7 @@ final class BubbaHubBookingOptions {
         ?>
         <div class="wrap">
             <h1>BubbaHub Booking Options</h1>
-            <p>Choose the ACF field used on each venue for an external booking link. If the field contains a valid URL, customers will see a third option alongside Book Now and Reserve Spot.</p>
+            <p>Each venue can offer three choices: <strong>Book Now</strong>, <strong>Reserve Spot</strong>, or an external booking link.</p>
             <form method="post" action="options.php">
                 <?php settings_fields('bubbahub_booking_options'); ?>
                 <table class="form-table" role="presentation">
@@ -54,7 +47,7 @@ final class BubbaHubBookingOptions {
                         <th scope="row"><label for="bh-external-url-field">External booking URL ACF field</label></th>
                         <td>
                             <input id="bh-external-url-field" class="regular-text" name="bubbahub_booking_options[external_url_field]" value="<?php echo esc_attr($s['external_url_field']); ?>">
-                            <p class="description">Default: <code>external_booking_url</code>. Add this field to your Venue/Group ACF field group as a URL field.</p>
+                            <p class="description">Default: <code>external_booking_url</code>. Add this as a URL field to the Venue/Group ACF field group. Leave it empty when the provider does not use an external booking system.</p>
                         </td>
                     </tr>
                 </table>
@@ -78,9 +71,8 @@ final class BubbaHubBookingOptions {
             'permission_callback' => '__return_true',
             'callback' => function($request) {
                 $id = absint($request['id']);
-                if (!$id || !post_type_exists('post') && !get_post($id)) {
-                    return new WP_Error('invalid_venue', 'Venue not found', ['status' => 404]);
-                }
+                $type = class_exists('BubbaHubBookings') ? BubbaHubBookings::venue_post_type() : get_post_type($id);
+                if (!$id || get_post_type($id) !== $type) return new WP_Error('invalid_venue', 'Venue not found', ['status' => 404]);
                 return ['external_url' => self::external_url($id)];
             },
         ]);
@@ -94,10 +86,15 @@ final class BubbaHubBookingOptions {
         (function(){
             if(window.BubbaHubBookingOptionsLoaded)return;
             window.BubbaHubBookingOptionsLoaded=true;
-            function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
             function setup(w){
+                if(w.getAttribute('data-bh-options-bound')==='1')return;
+                w.setAttribute('data-bh-options-bound','1');
                 var venue=w.querySelector('.bh-booking-venue');
                 if(!venue)return;
+                var pay=w.querySelector('.bh-mode[data-mode="pay_now"]');
+                var reserve=w.querySelector('.bh-mode[data-mode="reserve"]');
+                if(pay)pay.textContent='Book Now';
+                if(reserve)reserve.textContent='Reserve Spot';
                 venue.addEventListener('change',function(){
                     var id=parseInt(venue.value||'0',10);
                     var old=w.querySelector('.bh-external-booking');
@@ -118,10 +115,6 @@ final class BubbaHubBookingOptions {
                         mode.appendChild(a);
                     }).catch(function(){});
                 });
-                var pay=w.querySelector('.bh-mode[data-mode="pay_now"]');
-                var reserve=w.querySelector('.bh-mode[data-mode="reserve"]');
-                if(pay)pay.textContent='Book Now';
-                if(reserve)reserve.textContent='Reserve Spot';
             }
             function scan(){document.querySelectorAll('.bh-booking-widget').forEach(setup);}
             if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan);else scan();
@@ -129,7 +122,8 @@ final class BubbaHubBookingOptions {
         })();
         </script>
         <style>
-        .bh-booking-mode{flex-wrap:wrap}
+        .bh-booking-mode{display:flex;gap:10px;flex-wrap:wrap}
+        .bh-booking-mode .bh-mode{flex:1;min-width:150px}
         .bh-booking-mode .bh-external-booking{display:flex;align-items:center;justify-content:center;text-decoration:none}
         </style>
         <?php
